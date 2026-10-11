@@ -1,0 +1,3827 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B7CFF">
+<title>Andalan Express</title>
+<link rel="icon" type="image/png" href="icons/logo.jpg">
+<link rel="apple-touch-icon" href="icons/logo.jpg">
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --primary:#0B7CFF; --green:#16A34A; --orange:#F59E0B;
+  --red:#EF4444; --purple:#8B5CF6; --bg:#F4F7FB;
+  --text:#1E293B; --muted:#64748B; --border:#E2E8F0;
+  --shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html, body { overscroll-behavior-y:contain; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding-bottom:80px; -webkit-font-smoothing:antialiased; }
+
+/* Buttons */
+.btn { padding:12px 16px; border-radius:12px; border:none; font-weight:600; font-size:14px; cursor:pointer; font-family:inherit; transition:transform .1s, opacity .2s; width:100%; }
+.btn:active:not(:disabled) { transform:scale(.97); }
+.btn:disabled { opacity:.6; cursor:not-allowed; }
+.btn-primary { background:var(--primary); color:white; }
+.btn-green { background:var(--green); color:white; }
+.btn-orange { background:var(--orange); color:white; }
+.btn-red { background:var(--red); color:white; }
+.btn-ghost { background:#F1F5F9; color:var(--text); }
+.btn-outline { background:white; color:var(--primary); border:1.5px solid var(--primary); }
+.btn-sm { padding:8px 12px; font-size:12px; }
+.btn-row { display:flex; gap:8px; margin-top:10px; }
+.btn-row .btn { flex:1; }
+
+/* Card */
+.card { background:white; border-radius:16px; padding:16px; box-shadow:var(--shadow); margin-bottom:12px; }
+.card-clickable { cursor:pointer; transition:transform .15s; }
+.card-clickable:active { transform:scale(.985); }
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:flex-end; justify-content:center; z-index:200; backdrop-filter:blur(2px); }
+.modal-overlay.active { display:flex; }
+.modal-overlay.center { align-items:center; }
+.modal { background:white; border-radius:24px 24px 0 0; padding:36px 20px 32px; width:100%; max-width:500px; max-height:92vh; overflow-y:auto; animation:slideUp .25s ease-out; position:relative; }
+.modal::before { content:''; position:absolute; top:16px; left:50%; transform:translateX(-50%); width:40px; height:4px; background:#CBD5E1; border-radius:2px; }
+.confirm-modal { background:white; border-radius:20px; padding:24px; width:90%; max-width:340px; text-align:center; animation:zoomIn .2s ease-out; }
+@keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
+@keyframes zoomIn { from{transform:scale(.9);opacity:0;} to{transform:scale(1);opacity:1;} }
+.modal h3 { font-size:18px; margin-bottom:16px; font-weight:700; }
+.field { margin-bottom:14px; }
+.field label { font-size:12px; color:var(--muted); display:block; margin-bottom:6px; font-weight:600; }
+.field .req { color:var(--red); }
+.field input, .field select, .field textarea { width:100%; padding:12px 14px; border:1.5px solid var(--border); border-radius:12px; font-size:14px; color:var(--text); background:white; font-family:inherit; transition:border-color .2s; }
+.field input:focus, .field select:focus, .field textarea:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(11,124,255,.1); }
+.field textarea { resize:vertical; min-height:60px; }
+
+/* Toast */
+.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#1E293B; color:white; padding:12px 20px; border-radius:30px; font-size:13px; display:none; z-index:3000; max-width:85%; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,.2); font-weight:500; }
+.toast.show { display:block; animation:fadeInUp .3s; }
+.toast.success { background:var(--green); }
+.toast.error { background:var(--red); }
+@keyframes fadeInUp { from{opacity:0;transform:translate(-50%,20px);} to{opacity:1;transform:translate(-50%,0);} }
+
+/* Badge & Header */
+.badge { padding:4px 10px; border-radius:20px; font-size:10px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:.3px; white-space:nowrap; display:inline-block; }
+.header { background:var(--primary); color:white; padding:20px; border-radius:0 0 24px 24px; display:flex; justify-content:space-between; align-items:flex-start; position:sticky; top:0; z-index:50; }
+.header h1 { font-size:13px; font-weight:500; opacity:.9; letter-spacing:.3px; }
+.header .name { font-size:20px; font-weight:700; margin-top:2px; }
+.header .sub { font-size:12px; opacity:.85; margin-top:2px; }
+
+/* Bottom nav */
+.bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; display:flex; justify-content:space-around; padding:8px 0 max(12px, env(safe-area-inset-bottom)); border-top:1px solid var(--border); z-index:100; box-shadow:0 -2px 8px rgba(0,0,0,.03); }
+.nav-item { text-align:center; font-size:10px; color:#94A3B8; cursor:pointer; flex:1; padding:4px 0; transition:color .2s; user-select:none; }
+.nav-item.active { color:var(--primary); font-weight:600; }
+.nav-item .icon { font-size:20px; display:block; margin-bottom:2px; line-height:1; }
+
+/* Empty & Skeleton */
+.empty { text-align:center; padding:30px 20px; color:var(--muted); font-size:13px; line-height:1.6; }
+.empty .icon { font-size:48px; margin-bottom:12px; opacity:.6; display:block; }
+.skeleton { background:linear-gradient(90deg,#E2E8F0 25%,#F1F5F9 50%,#E2E8F0 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:12px; height:100px; margin-bottom:12px; }
+@keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+
+/* Boot screen */
+.boot-screen { position:fixed; inset:0; z-index:9999; background:linear-gradient(135deg,#0B7CFF,#4A9EFF); color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.boot-screen.hidden { display:none; }
+.boot-screen h1 { font-size:24px; font-weight:800; margin-bottom:4px; }
+.boot-screen p { font-size:13px; opacity:.9; margin-bottom:24px; }
+.spinner-lg { width:36px; height:36px; border:4px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .8s linear infinite; }
+.spinner-sm { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; margin-right:6px; vertical-align:middle; }
+@keyframes spin { to{transform:rotate(360deg);} }
+
+/* Services grid */
+.services { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:16px; }
+.service-card { background:white; border-radius:18px; padding:20px 16px; text-align:center; box-shadow:var(--shadow); cursor:pointer; border:none; font-family:inherit; transition:transform .15s; position:relative; overflow:hidden; }
+.service-card:active { transform:scale(.97); }
+.service-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; }
+.service-card.kurir::before { background:var(--primary); }
+.service-card.jastip::before { background:var(--green); }
+.service-card.kuliner::before { background:var(--orange); }
+.service-card.ojek::before { background:var(--purple); }
+.service-card .icon { font-size:36px; margin-bottom:8px; display:block; }
+.service-card h3 { font-size:15px; font-weight:700; margin-bottom:4px; color:var(--text); }
+.service-card p { font-size:11px; color:var(--muted); }
+
+/* Guest role grid */
+.guest-role-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.guest-role-card { background:#F8FAFC; border:2px solid var(--border); border-radius:16px; padding:16px 8px; text-align:center; cursor:pointer; transition:all .2s; font-family:inherit; }
+.guest-role-card:active { transform:scale(.96); }
+.guest-role-card .icon { font-size:32px; margin-bottom:6px; display:block; }
+.guest-role-card h3 { font-size:12px; font-weight:700; }
+.guest-role-card p { font-size:10px; color:var(--muted); margin-top:2px; }
+
+/* Stats */
+.driver-stats, .admin-stat-grid { display:grid; gap:10px; padding:16px; }
+.driver-stats { grid-template-columns:1fr 1fr 1fr; }
+.admin-stat-grid { grid-template-columns:1fr 1fr; }
+.driver-stat, .admin-stat { background:white; border-radius:14px; padding:14px; text-align:center; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.driver-stat .val, .admin-stat .val { font-size:20px; font-weight:800; color:var(--primary); line-height:1.2; }
+.driver-stat .lbl, .admin-stat .lbl { font-size:10px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:.5px; font-weight:700; }
+.admin-stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--primary); }
+.admin-stat.green::before { background:var(--green); }
+.admin-stat.orange::before { background:var(--orange); }
+.admin-stat.purple::before { background:var(--purple); }
+
+/* Online toggle */
+.online-toggle { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.15); padding:8px 14px; border-radius:30px; font-size:12px; font-weight:700; cursor:pointer; border:none; color:white; font-family:inherit; }
+.dot-status { width:8px; height:8px; border-radius:50%; background:#EF4444; flex-shrink:0; }
+.dot-status.online { background:#22C55E; box-shadow:0 0 8px #22C55E; animation:pulse 2s infinite; }
+.dot-status.busy { background:#F59E0B; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+
+/* Order card */
+.order-card { background:white; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:var(--shadow); border-left:4px solid var(--primary); animation:slideIn .3s ease-out; }
+@keyframes slideIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+.order-card .row1 { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; }
+.order-card .code { font-weight:700; font-size:14px; }
+.order-card .route { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:8px; }
+.order-card .route strong { color:var(--text); }
+.order-card .price { font-size:16px; font-weight:700; color:var(--green); }
+.order-card .service { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.3px; }
+
+/* Filter chips */
+.filter-chips { display:flex; gap:8px; padding:0 16px 12px; overflow-x:auto; scrollbar-width:none; }
+.filter-chips::-webkit-scrollbar { display:none; }
+.chip { padding:8px 14px; border-radius:20px; background:white; border:1px solid var(--border); font-size:12px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; transition:all .15s; flex-shrink:0; font-family:inherit; }
+.chip.active { background:var(--primary); border-color:var(--primary); color:white; }
+.chip .count { display:inline-block; background:rgba(0,0,0,.1); padding:1px 6px; border-radius:10px; font-size:10px; margin-left:4px; }
+.chip.active .count { background:rgba(255,255,255,.25); }
+
+/* Mitra hero */
+.mitra-hero { background:linear-gradient(135deg,var(--accent,#16A34A),var(--accent-2,#22C55E)); color:white; margin:20px 16px 0; border-radius:22px; padding:22px; }
+.mitra-hero .val { font-size:32px; font-weight:800; margin:8px 0; }
+.mitra-hero .lbl { font-size:10.5px; opacity:.72; text-transform:uppercase; letter-spacing:.5px; font-weight:700; }
+.mitra-hero-row { display:flex; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,.15); }
+.mitra-hero-stat { flex:1; background:rgba(255,255,255,.12); border-radius:12px; padding:11px; }
+.mitra-hero-stat .lbl { font-size:9.5px; opacity:.7; text-transform:uppercase; }
+.mitra-hero-stat .val { font-size:17px; font-weight:800; margin-top:3px; }
+
+/* Menu item (mitra) */
+.menu-item-card { background:white; border-radius:14px; padding:12px; margin-bottom:10px; box-shadow:var(--shadow); display:flex; gap:12px; align-items:center; }
+.menu-item-card .menu-img { width:64px; height:64px; border-radius:14px; background:#F1F5F9; display:flex; align-items:center; justify-content:center; font-size:28px; flex-shrink:0; overflow:hidden; }
+.menu-item-card .menu-img img { width:100%; height:100%; object-fit:cover; }
+.menu-item-card .menu-info { flex:1; min-width:0; }
+.menu-item-card .cat { font-size:10px; color:var(--primary); font-weight:800; text-transform:uppercase; }
+.menu-item-card .name { font-weight:700; font-size:14px; margin:2px 0; }
+.menu-item-card .price { font-weight:800; color:var(--green); font-size:14px; }
+.menu-item-card .actions { display:flex; flex-direction:column; gap:6px; }
+.icon-btn { width:36px; height:36px; border-radius:10px; border:none; background:#F1F5F9; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.icon-btn:active { transform:scale(.9); }
+
+/* Quick loc */
+.quick-loc { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.quick-loc button { padding:6px 12px; border-radius:20px; background:#EFF6FF; color:var(--primary); border:1px solid #BFDBFE; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; }
+
+/* Price estimate */
+.price-estimate { background:linear-gradient(135deg,#EFF6FF,#DBEAFE); border:1.5px solid #BFDBFE; border-radius:14px; padding:14px; margin:12px 0; }
+.price-estimate .label { font-size:11px; color:#1E40AF; font-weight:600; text-transform:uppercase; }
+.price-estimate .price { font-size:22px; font-weight:800; color:var(--primary); margin:4px 0; }
+.price-estimate .detail { font-size:11px; color:#1E40AF; line-height:1.6; }
+
+/* Search bar */
+.search-bar { padding:0 16px 12px; }
+.search-bar input { width:100%; padding:12px 14px; border:1.5px solid var(--border); border-radius:12px; font-size:14px; font-family:inherit; }
+
+/* Utility */
+.container { width:100%; max-width:500px; margin:0 auto; }
+.page { display:none; }
+.page.active { display:block; }
+.hidden { display:none !important; }
+.section { padding:0 16px; margin-top:8px; }
+.section h2 { font-size:15px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
+.powered { text-align:center; padding:24px 16px; font-size:11px; color:var(--muted); }
+
+/* Wallet & Chart */
+.wallet-hero { background:linear-gradient(135deg,var(--primary),#4A9EFF); color:white; margin:16px; border-radius:20px; padding:22px; box-shadow:0 8px 24px rgba(11,124,255,.3); }
+.wallet-hero.green { background:linear-gradient(135deg,#16A34A,#22C55E); box-shadow:0 8px 24px rgba(22,163,74,.3); }
+.wallet-hero .lbl { font-size:11px; opacity:.85; text-transform:uppercase; letter-spacing:.5px; font-weight:700; }
+.wallet-hero .val { font-size:32px; font-weight:800; margin:8px 0; }
+.wallet-hero .meta { display:flex; gap:12px; font-size:11px; opacity:.9; flex-wrap:wrap; }
+.chart-card { background:white; border-radius:16px; padding:14px; box-shadow:var(--shadow); }
+.chart-stats { display:flex; justify-content:space-between; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border); font-size:12px; }
+.chart-stats .item { text-align:center; flex:1; }
+.chart-stats .item:not(:first-child) { border-left:1px solid var(--border); }
+.chart-stats .lbl { color:var(--muted); font-size:10px; text-transform:uppercase; font-weight:700; }
+.chart-stats .val { font-weight:800; margin-top:2px; }
+
+/* Driver item picker */
+.driver-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; margin-bottom:6px; border:1.5px solid var(--border); background:white; cursor:pointer; }
+.driver-item.selected { border-color:var(--primary); background:#EFF6FF; }
+.driver-item .avatar { width:40px; height:40px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex-shrink:0; }
+.driver-item .info { flex:1; min-width:0; }
+.driver-item .info .name { font-weight:700; font-size:13px; }
+.driver-item .info .meta { font-size:11px; color:var(--muted); }
+
+/* WA composer */
+.wa-composer { background:#F0FDF4; border:1.5px solid #BBF7D0; border-radius:14px; padding:14px; margin-bottom:14px; }
+.wa-composer textarea { width:100%; padding:12px; border:1.5px solid #BBF7D0; border-radius:10px; font-size:13px; font-family:inherit; min-height:100px; resize:vertical; }
+</style>
+</head>
+<body data-role="loading">
+
+<div class="boot-screen" id="bootScreen">
+  <img src="icons/logo.jpg" alt="Andalan Express" style="width:100px;height:100px;border-radius:20px;object-fit:contain;margin-bottom:16px;filter:drop-shadow(0 6px 16px rgba(0,0,0,0.3));animation:logoFloat 3s ease-in-out infinite;">
+  <h1>Andalan Express</h1>
+  <p id="bootMessage">Memuat aplikasi...</p>
+  <div class="spinner-lg"></div>
+</div>
+
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="globalModal" onclick="closeGlobalModal(event)">
+  <div class="modal" id="globalModalContent"></div>
+</div>
+<div class="modal-overlay center" id="globalConfirmModal" onclick="closeConfirmModal(event)">
+  <div class="confirm-modal" id="globalConfirmContent"></div>
+</div>
+
+<script>
+/* ================================================================
+   KONFIGURASI
+   ================================================================ */
+const SUPABASE_URL = 'https://mvenrinyucsyhasyecyc.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12ZW5yaW55dWNzeWhhc3llY3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTA4NDksImV4cCI6MjEwNjk2Njg0OX0.QVhunjb6aV4Nao3eK8KMlMJn4bUHxCz7HQqfDtvefMY';
+const FALLBACK_MAPS_KEY = 'AIzaSyBJVmtW6nS77s2W2s5owmeTTh0DA7G_3dA';
+const ADMIN_PHONE_FALLBACK = '6281234567890';
+
+const DEFAULT_PRICING = {
+  kurir:   { price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:0 },
+  jastip:  { price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:0 },
+  kuliner: { price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:10 },
+  ojek:    { price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:0 }
+};
+
+const APP = {
+  supabase:null, session:null, user:null, profile:null,
+  role:'guest', config:{}, mapsReady:false, geocoder:null, distanceService:null,
+  realtimeChannel:null, currentCleanup:null, data:{},
+  pricing: { ...DEFAULT_PRICING },
+  filters: { order: 'ALL', menu: 'ALL' }
+};
+
+const chartRegistry = {};
+
+/* ================================================================
+   CHART & WALLET HELPERS
+   ================================================================ */
+function destroyChart(id) {
+  if (chartRegistry[id]) {
+    try { chartRegistry[id].destroy(); } catch(e){}
+    delete chartRegistry[id];
+  }
+}
+function destroyAllCharts() {
+  Object.keys(chartRegistry).forEach(id => destroyChart(id));
+}
+function makeChart(canvasId, config) {
+  destroyChart(canvasId);
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || typeof Chart === 'undefined') return null;
+  const ctx = canvas.getContext('2d');
+  chartRegistry[canvasId] = new Chart(ctx, config);
+  return chartRegistry[canvasId];
+}
+function formatRupiahShort(v) {
+  v = Number(v) || 0;
+  if (v >= 1e9) return 'Rp ' + (v/1e9).toFixed(1) + 'M';
+  if (v >= 1e6) return 'Rp ' + (v/1e6).toFixed(1) + 'jt';
+  if (v >= 1e3) return 'Rp ' + Math.round(v/1e3) + 'rb';
+  return 'Rp ' + Math.round(v);
+}
+
+async function getWallet(ownerId) {
+  if (!ownerId) return null;
+  try {
+    const { data } = await APP.supabase.from('wallets').select('*').eq('owner_id', ownerId).maybeSingle();
+    return data;
+  } catch(e) { return null; }
+}
+
+async function getWalletStats(ownerId, days = 7) {
+  const wallet = await getWallet(ownerId);
+  if (!wallet) return { wallet: null, daily: [], avg: 0, total: 0 };
+  
+  const since = new Date(); 
+  since.setDate(since.getDate() - (days-1)); 
+  since.setHours(0,0,0,0);
+  
+  const { data: txs } = await APP.supabase
+    .from('wallet_transactions')
+    .select('amount, type, created_at')
+    .eq('wallet_id', wallet.id)
+    .eq('type', 'earning')
+    .gte('created_at', since.toISOString());
+  
+  const dailyMap = {};
+  for (let i = 0; i < days; i++) {
+    const d = new Date(); 
+    d.setDate(d.getDate() - (days-1-i)); 
+    d.setHours(0,0,0,0);
+    const key = d.toISOString().slice(0,10);
+    dailyMap[key] = 0;
+  }
+  (txs || []).forEach(t => {
+    const key = (t.created_at || '').slice(0,10);
+    if (dailyMap[key] !== undefined) dailyMap[key] += Number(t.amount) || 0;
+  });
+  
+  const daily = Object.entries(dailyMap)
+    .sort((a,b) => a[0].localeCompare(b[0]))
+    .map(([day, amount]) => ({ day, amount }));
+  const total = daily.reduce((s,d) => s + d.amount, 0);
+  const avg = daily.length ? total / daily.length : 0;
+  
+  return { wallet, daily, avg, total };
+}
+
+function renderDailyChart(canvasId, daily, color = '#0B7CFF') {
+  const labels = daily.map(d => {
+    const dt = new Date(d.day);
+    return dt.toLocaleDateString('id-ID', { day:'numeric', month:'short' });
+  });
+  const data = daily.map(d => d.amount);
+  
+  return makeChart(canvasId, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Pendapatan',
+        data,
+        borderColor: color,
+        backgroundColor: color + '22',
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: color,
+        pointBorderColor: 'white',
+        pointBorderWidth: 2,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,.95)',
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: { label: (ctx) => 'Rp ' + Number(ctx.parsed.y).toLocaleString('id-ID') }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { callback: (v) => formatRupiahShort(v), font: { size: 10 }, color: '#64748B' },
+          grid: { color: '#E2E8F0' }
+        },
+        x: {
+          ticks: { font: { size: 10 }, color: '#64748B' },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+function renderBarChart(canvasId, labels, dataArr, colors) {
+  return makeChart(canvasId, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: dataArr,
+        backgroundColor: colors || '#0B7CFF',
+        borderRadius: 8,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,.95)',
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: { label: (ctx) => 'Rp ' + Number(ctx.parsed.y).toLocaleString('id-ID') }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { callback: (v) => formatRupiahShort(v), font: { size: 10 }, color: '#64748B' },
+          grid: { color: '#E2E8F0' }
+        },
+        x: {
+          ticks: { font: { size: 10 }, color: '#64748B' },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+/* ================================================================
+   BOOTSTRAP
+   ================================================================ */
+async function boot() {
+  try {
+    bootMsg('Memuat konfigurasi...');
+    APP.config = await loadConfigFromDB();
+
+    bootMsg('Menghubungkan...');
+    APP.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    bootMsg('Memeriksa sesi...');
+    const { data: { session } } = await APP.supabase.auth.getSession();
+    APP.session = session;
+    APP.user = session?.user || null;
+
+    bootMsg('Menentukan peran...');
+    if (APP.user) {
+      const { data: profile } = await APP.supabase
+        .from('profiles').select('*').eq('id', APP.user.id).maybeSingle();
+      APP.profile = profile;
+      APP.role = profile?.role || 'guest';
+    }
+
+    bootMsg('Menyiapkan tampilan...');
+    await loadPricingRules();
+    await renderByRole(APP.role);
+
+    document.getElementById('bootScreen').classList.add('hidden');
+  } catch (err) {
+    console.error('Boot error:', err);
+    bootMsg('Gagal: ' + err.message + ' — retry...');
+    setTimeout(() => boot(), 3000);
+  }
+}
+
+function bootMsg(msg) {
+  const el = document.getElementById('bootMessage');
+  if (el) el.innerText = msg;
+}
+
+async function loadConfigFromDB() {
+  const DEFAULT = {
+    maps_api_key: FALLBACK_MAPS_KEY,
+    admin_phone: ADMIN_PHONE_FALLBACK,
+    app_name: 'Andalan Express'
+  };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/app_config?is_public=eq.true`, {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    if (!res.ok) return DEFAULT;
+    const data = await res.json();
+    if (!Array.isArray(data)) return DEFAULT;
+    const config = { ...DEFAULT };
+    data.forEach(r => { config[r.key] = r.value; });
+    try { localStorage.setItem('app_config_cache', JSON.stringify({ data:config, ts:Date.now() })); } catch(e){}
+    return config;
+  } catch (err) {
+    try {
+      const cached = localStorage.getItem('app_config_cache');
+      if (cached) {
+        const { data, ts } = JSON.parse(cached);
+        if (Date.now() - ts < 864e5) return data;
+      }
+    } catch(e){}
+    return DEFAULT;
+  }
+}
+
+async function loadPricingRules() {
+  try {
+    const { data } = await APP.supabase.from('pricing_rules').select('*').eq('is_active', true);
+    if (data && data.length) {
+      const rules = {};
+      data.forEach(r => {
+        rules[r.service_type] = {
+          price_per_km: Number(r.price_per_km) || 2500,
+          service_fee: Number(r.service_fee) || 1000,
+          driver_fee_pct: Number(r.driver_fee_percentage) || 10,
+          umkm_markup_pct: Number(r.umkm_markup_percentage) || 0
+        };
+      });
+      APP.pricing = rules;
+    }
+  } catch(e) { console.warn('Pricing fallback ke default'); }
+}
+
+/* ================================================================
+   ROUTER
+   ================================================================ */
+async function renderByRole(role) {
+  destroyAllCharts();
+  
+  if (APP.currentCleanup) { try { APP.currentCleanup(); } catch(e){} APP.currentCleanup = null; }
+  if (APP.realtimeChannel) { APP.supabase.removeChannel(APP.realtimeChannel); APP.realtimeChannel = null; }
+
+  document.body.setAttribute('data-role', role);
+  APP.filters = { order:'ALL', menu:'ALL' };
+
+  if (['guest','customer'].includes(role) && !APP.mapsReady) {
+    bootMsg('Memuat peta...');
+    try {
+      await loadGoogleMaps(APP.config.maps_api_key);
+      APP.mapsReady = true;
+      APP.geocoder = new google.maps.Geocoder();
+      APP.distanceService = new google.maps.DistanceMatrixService();
+    } catch (err) { console.warn('Maps gagal:', err.message); }
+  }
+
+  const root = document.getElementById('app');
+  try {
+    switch (role) {
+      case 'admin':    APP.currentCleanup = await renderAdminView(root); break;
+      case 'driver':   APP.currentCleanup = await renderDriverView(root); break;
+      case 'mitra':    APP.currentCleanup = await renderMitraView(root); break;
+      case 'customer': APP.currentCleanup = await renderCustomerView(root); break;
+      default:         APP.currentCleanup = await renderGuestView(root); break;
+    }
+  } catch (err) {
+    console.error('Render error:', err);
+    root.innerHTML = `<div style="padding:40px;text-align:center;">
+      <div style="font-size:48px;">⚠️</div>
+      <h2 style="margin:16px 0;">Gagal render</h2>
+      <p style="color:var(--muted);margin-bottom:20px;">${err.message}</p>
+      <button class="btn btn-primary" onclick="location.reload()">Coba Lagi</button>
+    </div>`;
+  }
+}
+
+async function switchRole(newRole) {
+  APP.role = newRole;
+  await renderByRole(newRole);
+}
+
+function loadGoogleMaps(apiKey) {
+  return new Promise((resolve, reject) => {
+    if (window.google?.maps?.Geocoder) { resolve(); return; }
+    const cb = '_gmap_ready_' + Date.now();
+    window[cb] = () => { delete window[cb]; resolve(); };
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=id&region=ID&callback=${cb}&loading=async`;
+    script.async = true;
+    script.defer = true;
+    script.onerror = () => reject(new Error('Google Maps gagal load'));
+    document.head.appendChild(script);
+    setTimeout(() => reject(new Error('Maps timeout')), 10000);
+  });
+}
+
+/* ================================================================
+   UI HELPERS
+   ================================================================ */
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.innerText = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+function showConfirm({ icon, title, message, confirmText='Ya', cancelText='Batal', confirmColor='primary' }) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('globalConfirmContent');
+    const colors = { primary:'btn-primary', green:'btn-green', red:'btn-red', orange:'btn-orange' };
+    modal.innerHTML = `
+      <div style="font-size:48px;margin-bottom:12px;">${icon || '❓'}</div>
+      <h3 style="font-size:17px;margin-bottom:8px;">${title || 'Konfirmasi'}</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5;white-space:pre-line;">${message || ''}</p>
+      <div class="btn-row">
+        ${cancelText ? `<button class="btn btn-ghost" onclick="resolveConfirm(false)">${cancelText}</button>` : ''}
+        <button class="btn ${colors[confirmColor] || 'btn-primary'}" onclick="resolveConfirm(true)">${confirmText}</button>
+      </div>
+    `;
+    document.getElementById('globalConfirmModal').classList.add('active');
+    window.__confirmResolve = (val) => {
+      document.getElementById('globalConfirmModal').classList.remove('active');
+      resolve(val);
+    };
+  });
+}
+
+function resolveConfirm(val) { if (window.__confirmResolve) window.__confirmResolve(val); }
+function closeConfirmModal(e) { if (e.target.id === 'globalConfirmModal') resolveConfirm(false); }
+
+function openGlobalModal(html) {
+  document.getElementById('globalModalContent').innerHTML = html;
+  document.getElementById('globalModal').classList.add('active');
+}
+function closeGlobalModal(e) {
+  if (!e || e.target.id === 'globalModal') document.getElementById('globalModal').classList.remove('active');
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+}
+
+function normalizePhone(p) {
+  if (!p) return '';
+  let c = String(p).replace(/\D/g, '');
+  if (c.startsWith('0')) c = '62' + c.slice(1);
+  else if (c.startsWith('8')) c = '62' + c;
+  else if (!c.startsWith('62')) c = '62' + c;
+  return c;
+}
+
+function getStatusColor(s) {
+  const c = {
+    'MENUNGGU':'#F59E0B','DIPROSES':'#0B7CFF','SIAP DIAMBIL':'#8B5CF6',
+    'DITUGASKAN':'#0B7CFF','DITERIMA DRIVER':'#0B7CFF',
+    'MENUJU PICKUP':'#F59E0B','SAMPAI PICKUP':'#F59E0B',
+    'DIAMBIL':'#16A34A','MENUJU TUJUAN':'#16A34A',
+    'SELESAI':'#16A34A','DIBATALKAN':'#EF4444'
+  };
+  return c[s] || '#64748B';
+}
+
+function getServiceIcon(t) { return { kurir:'📦', jastip:'🛍️', kuliner:'🍜', ojek:'🏍️' }[t] || '📦'; }
+function formatTime(iso) { return iso ? new Date(iso).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) : '-'; }
+function formatDate(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso), today = new Date();
+  const diff = Math.floor((today - d) / 864e5);
+  if (diff === 0) return 'Hari ini, ' + formatTime(iso);
+  if (diff === 1) return 'Kemarin, ' + formatTime(iso);
+  return d.toLocaleDateString('id-ID', { day:'numeric', month:'short' }) + ', ' + formatTime(iso);
+}
+
+function getRule(t) { return APP.pricing[t] || DEFAULT_PRICING[t] || DEFAULT_PRICING.kurir; }
+
+function calculateCost({ serviceType, distanceKm, subtotal = 0 }) {
+  const rule = getRule(serviceType);
+  const distance = Math.max(0, Number(distanceKm) || 0);
+  const serviceCost = Math.round(distance * rule.price_per_km);
+  const serviceFee = rule.service_fee;
+  const umkmMarkup = Math.round(subtotal * (rule.umkm_markup_pct / 100));
+  const subtotalWithMarkup = subtotal + umkmMarkup;
+  const totalPrice = subtotalWithMarkup + serviceCost + serviceFee;
+  const driverEarnings = Math.round(serviceCost * (1 - rule.driver_fee_pct / 100));
+  const platformFromDriver = serviceCost - driverEarnings;
+  const platformEarnings = platformFromDriver + serviceFee + umkmMarkup;
+  const mitraEarnings = subtotalWithMarkup;
+  return { subtotal:subtotalWithMarkup, service_cost:serviceCost, service_fee:serviceFee,
+    total_price:totalPrice, distance_km:distance, umkm_markup:umkmMarkup,
+    driver_earnings:driverEarnings, mitra_earnings:mitraEarnings, platform_earnings:platformEarnings };
+}
+
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 880; osc.type = 'sine';
+    gain.gain.setValueAtTime(.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.01, ctx.currentTime + .5);
+    osc.start(); osc.stop(ctx.currentTime + .5);
+  } catch(e){}
+}
+
+/* ================================================================
+   MAPS HELPERS
+   ================================================================ */
+function geocodeAddress(address) {
+  return new Promise((resolve, reject) => {
+    if (!APP.geocoder) { reject(new Error('Maps belum siap')); return; }
+    APP.geocoder.geocode({ address, region:'ID' }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        const loc = results[0].geometry.location;
+        resolve({ lat:loc.lat(), lng:loc.lng(), formatted:results[0].formatted_address });
+      } else reject(new Error('Alamat tidak ditemukan'));
+    });
+  });
+}
+
+function getDistanceMatrix(origin, destination) {
+  return new Promise((resolve, reject) => {
+    if (!APP.distanceService) { reject(new Error('Distance service belum siap')); return; }
+    const cacheKey = `${origin}|${destination}`.toLowerCase();
+    const cache = APP.data.__distanceCache || (APP.data.__distanceCache = {});
+    if (cache[cacheKey]) { resolve(cache[cacheKey]); return; }
+    APP.distanceService.getDistanceMatrix({
+      origins:[origin], destinations:[destination],
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.METRIC, language:'id'
+    }, (response, status) => {
+      if (status !== 'OK') { reject(new Error('Maps: ' + status)); return; }
+      const el = response.rows?.[0]?.elements?.[0];
+      if (!el || el.status !== 'OK') { reject(new Error('Rute tidak ditemukan')); return; }
+      const result = {
+        distance_km: Math.round((el.distance.value / 1000) * 10) / 10,
+        duration_min: Math.round(el.duration.value / 60)
+      };
+      cache[cacheKey] = result;
+      resolve(result);
+    });
+  });
+}
+
+async function getOSRMDistance(origin, destination) {
+  let o, d;
+  try {
+    o = typeof origin === 'string' ? await geocodeAddress(origin) : origin;
+    d = typeof destination === 'string' ? await geocodeAddress(destination) : destination;
+  } catch(e) { throw new Error('Geocode gagal: ' + e.message); }
+  const url = `https://router.project-osrm.org/route/v1/driving/${o.lng},${o.lat};${d.lng},${d.lat}?overview=false`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.code !== 'Ok' || !data.routes?.[0]) throw new Error('OSRM gagal');
+  const route = data.routes[0];
+  return { distance_km: Math.round((route.distance/1000)*10)/10, duration_min: Math.round(route.duration/60) };
+}
+
+async function getDistance(origin, destination) {
+  try {
+    if (APP.mapsReady) return await getDistanceMatrix(origin, destination);
+    throw new Error('Maps not ready');
+  } catch (err) {
+    console.warn('Google Maps gagal, coba OSRM:', err.message);
+    return await getOSRMDistance(origin, destination);
+  }
+}
+
+let autocompletes = {};
+function setupAutocomplete(fieldId, onPlaceSelected) {
+  if (!APP.mapsReady) { setTimeout(() => setupAutocomplete(fieldId, onPlaceSelected), 500); return; }
+  const input = document.getElementById(fieldId);
+  if (!input) return;
+  if (autocompletes[fieldId]) {
+    google.maps.event.clearInstanceListeners(autocompletes[fieldId]);
+    autocompletes[fieldId] = null;
+  }
+  const auto = new google.maps.places.Autocomplete(input, {
+    types:['geocode','establishment'], componentRestrictions:{ country:'id' },
+    fields:['formatted_address','geometry','name','place_id']
+  });
+  auto.addListener('place_changed', () => {
+    const place = auto.getPlace();
+    if (place.geometry) {
+      input.dataset.lat = place.geometry.location.lat();
+      input.dataset.lng = place.geometry.location.lng();
+      input.value = place.formatted_address || place.name || input.value;
+      if (onPlaceSelected) onPlaceSelected();
+    }
+  });
+  input.addEventListener('blur', () => { setTimeout(() => { if (onPlaceSelected) onPlaceSelected(); }, 300); });
+  autocompletes[fieldId] = auto;
+}
+
+function useCurrentLocation(fieldId, onDone) {
+  if (!navigator.geolocation) { showToast('GPS tidak didukung', 'error'); return; }
+  showToast('Mengambil lokasi...');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      if (!APP.geocoder) { document.getElementById(fieldId).value = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`; if (onDone) onDone(); return; }
+      APP.geocoder.geocode({ location:{ lat:latitude, lng:longitude } }, (results, status) => {
+        const input = document.getElementById(fieldId);
+        if (status === 'OK' && results[0]) {
+          input.value = results[0].formatted_address;
+          input.dataset.lat = latitude;
+          input.dataset.lng = longitude;
+        } else input.value = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        showToast('✅ Lokasi terisi', 'success');
+        if (onDone) onDone();
+      });
+    },
+    (err) => showToast('Gagal: ' + err.message, 'error'),
+    { enableHighAccuracy:true, timeout:10000 }
+  );
+}
+
+/* ================================================================
+   GUEST VIEW
+   ================================================================ */
+async function renderGuestView(root) {
+  root.innerHTML = `
+    <div class="container" style="padding:20px;">
+      <div style="text-align:center;color:white;margin-bottom:24px;padding-top:20px;background:linear-gradient(135deg,var(--primary),#4A9EFF);margin:-20px -20px 24px;padding:40px 20px 24px;border-radius:0 0 24px 24px;">
+        <img src="icons/logo.jpg" alt="Andalan Express" style="width:80px;height:80px;border-radius:20px;object-fit:contain;box-shadow:0 8px 24px rgba(0,0,0,.15);margin-bottom:12px;display:inline-block;">
+        <h1 style="font-size:24px;font-weight:800;">Andalan Express</h1>
+        <p style="font-size:13px;opacity:.9;margin-top:4px;">Cepat · Aman · Terpercaya</p>
+      </div>
+
+      <div class="card" style="background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border:1.5px solid #BFDBFE;">
+        <span class="badge" style="background:white;color:var(--primary);margin-bottom:10px;">✨ TANPA DAFTAR</span>
+        <h2 style="font-size:18px;font-weight:800;color:#1E40AF;margin:10px 0 6px;">👋 Mau Pesan Layanan?</h2>
+        <p style="font-size:12px;color:#1E40AF;opacity:.85;margin-bottom:14px;line-height:1.5;">Pesan Kurir, Jastip, Kuliner, atau Ojek. Cukup isi nama & nomor HP.</p>
+        <button class="btn btn-primary" style="padding:15px;" onclick="goAsCustomer()">🚀 Pesan Sekarang</button>
+      </div>
+
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px;">🔐 Login Mitra & Tim Andalan</div>
+        <div class="guest-role-grid">
+          <button class="guest-role-card" onclick="promptLogin('driver')">
+            <span class="icon">🏍️</span><h3>Driver</h3><p>Terima order</p>
+          </button>
+          <button class="guest-role-card" onclick="promptLogin('mitra')">
+            <span class="icon">🏪</span><h3>Mitra</h3><p>Jual kuliner</p>
+          </button>
+          <button class="guest-role-card" onclick="promptLogin('admin')">
+            <span class="icon">🛡️</span><h3>Admin</h3><p>Kontrol</p>
+          </button>
+        </div>
+      </div>
+
+      <div class="powered">Andalan Express v1.0</div>
+    </div>
+  `;
+}
+
+function goAsCustomer() { switchRole('customer'); }
+
+function promptLogin(role) {
+  const titles = { driver:'Login Driver', mitra:'Login Mitra', admin:'Login Admin' };
+  const icons = { driver:'🏍️', mitra:'🏪', admin:'🛡️' };
+  const colors = { driver:'var(--orange)', mitra:'var(--green)', admin:'var(--purple)' };
+  openGlobalModal(`
+    <h3>${icons[role]} ${titles[role]}</h3>
+    <div id="loginError" style="display:none;padding:12px;border-radius:12px;background:#FEF2F2;color:#B91C1C;font-size:13px;margin-bottom:14px;"></div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="nama@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn" id="btnLogin" style="background:${colors[role]};color:white;" onclick="doLogin('${role}')">
+      Masuk sebagai ${role.charAt(0).toUpperCase() + role.slice(1)}
+    </button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Batal</button>
+  `);
+  setTimeout(() => document.getElementById('loginEmail')?.focus(), 300);
+}
+
+async function doLogin(expectedRole) {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const btn = document.getElementById('btnLogin');
+  const errEl = document.getElementById('loginError');
+
+  if (!email || !password) {
+    errEl.style.display = 'block';
+    errEl.innerText = 'Email dan password wajib diisi';
+    return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-sm"></span>Memproses...';
+
+  try {
+    const { data, error } = await APP.supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    const { data: profile } = await APP.supabase
+      .from('profiles').select('role, name').eq('id', data.user.id).maybeSingle();
+
+    if (!profile) {
+      await APP.supabase.auth.signOut();
+      throw new Error('Profil tidak ditemukan. Hubungi admin.');
+    }
+    if (profile.role !== expectedRole) {
+      await APP.supabase.auth.signOut();
+      throw new Error(`Akun ini terdaftar sebagai ${profile.role.toUpperCase()}, bukan ${expectedRole.toUpperCase()}.`);
+    }
+
+    closeGlobalModal();
+    showToast('✅ Login berhasil', 'success');
+    APP.user = data.user;
+    APP.profile = profile;
+    APP.role = profile.role;
+    setTimeout(() => renderByRole(profile.role), 500);
+  } catch (err) {
+    errEl.style.display = 'block';
+    let msg = err.message;
+    if (msg.includes('Invalid login')) msg = 'Email atau password salah.';
+    else if (msg.includes('Email not confirmed')) msg = 'Email belum diverifikasi.';
+    errEl.innerText = msg;
+    btn.disabled = false;
+    btn.innerText = `Masuk sebagai ${expectedRole.charAt(0).toUpperCase() + expectedRole.slice(1)}`;
+  }
+}
+
+/* ================================================================
+   CUSTOMER VIEW
+   ================================================================ */
+function getGuestData() {
+  try { return JSON.parse(localStorage.getItem('andalan_guest') || 'null'); } catch(e){ return null; }
+}
+function saveGuestData(data) {
+  try { localStorage.setItem('andalan_guest', JSON.stringify(data)); } catch(e){}
+}
+
+async function renderCustomerView(root) {
+  const guestData = getGuestData();
+  const customerName = guestData?.name || APP.profile?.name || 'Guest';
+  const customerId = guestData?.id || APP.user?.id || null;
+
+  root.innerHTML = `
+    <div class="container">
+      <div class="page active" id="cust-page-home">
+        <div class="header">
+          <div>
+            <h1>ANDALAN EXPRESS</h1>
+            <div class="name">Halo, ${escapeHtml(customerName)}</div>
+            <div class="sub">Cepat · Aman · Terpercaya</div>
+          </div>
+          <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;" onclick="switchCustTab('profile')">
+            ${customerName.charAt(0).toUpperCase()}
+          </div>
+        </div>
+
+        ${!guestData ? `
+          <div style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);border:1.5px solid #F59E0B;border-radius:14px;padding:14px;margin:16px;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:28px;">👋</span>
+            <div style="flex:1;font-size:12px;color:#92400E;">
+              <strong style="display:block;font-size:13px;margin-bottom:2px;">Selamat datang!</strong>
+              Isi nama & nomor HP untuk pengalaman lebih baik
+            </div>
+            <button class="btn btn-orange btn-sm" style="width:auto;" onclick="openCustGuestForm()">Isi Data</button>
+          </div>
+        ` : ''}
+
+        <div class="services">
+          <button class="service-card kurir" onclick="openOrderForm('kurir')">
+            <span class="icon">📦</span><h3>Kurir</h3><p>Kirim paket & dokumen</p>
+          </button>
+          <button class="service-card jastip" onclick="openOrderForm('jastip')">
+            <span class="icon">🛍️</span><h3>Jastip</h3><p>Beli apapun, titip aja</p>
+          </button>
+          <button class="service-card kuliner" onclick="openOrderForm('kuliner')">
+            <span class="icon">🍜</span><h3>Kuliner</h3><p>Pesan makanan favorit</p>
+          </button>
+          <button class="service-card ojek" onclick="openOrderForm('ojek')">
+            <span class="icon">🏍️</span><h3>Ojek</h3><p>Antar jemput penumpang</p>
+          </button>
+        </div>
+
+        <div style="padding:0 16px 16px;">
+          <h2 style="font-size:15px;font-weight:700;margin-bottom:10px;">🚀 Pesanan Aktif</h2>
+          <div id="custActiveOrders"><div class="empty"><span class="icon">🛵</span>Belum ada pesanan aktif</div></div>
+        </div>
+
+        <div style="padding:0 16px 16px;">
+          <h2 style="font-size:15px;font-weight:700;margin-bottom:10px;">📜 Pesanan Terakhir</h2>
+          <div id="custRecentOrders"><div class="empty"><span class="icon">📭</span>Belum ada riwayat</div></div>
+        </div>
+      </div>
+
+      <div class="page" id="cust-page-orders">
+        <div class="header">
+          <div>
+            <h1>ANDALAN EXPRESS</h1>
+            <div class="name">Pesanan Saya</div>
+            <div class="sub">Semua riwayat pesanan</div>
+          </div>
+        </div>
+        <div style="padding:16px;" id="custAllOrders">
+          <div class="empty"><span class="icon">📭</span>Belum ada pesanan</div>
+        </div>
+      </div>
+
+      <div class="page" id="cust-page-profile">
+        <div class="header">
+          <div>
+            <h1>ANDALAN EXPRESS</h1>
+            <div class="name">Profil</div>
+            <div class="sub">Informasi akun Anda</div>
+          </div>
+        </div>
+        <div style="background:white;padding:24px 20px;text-align:center;border-radius:20px;margin:16px;box-shadow:var(--shadow);">
+          <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#4A9EFF);color:white;font-size:32px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+            ${customerName.charAt(0).toUpperCase()}
+          </div>
+          <h2 style="font-size:18px;">${escapeHtml(customerName)}</h2>
+          <p style="font-size:13px;color:var(--muted);">${guestData?.phone || 'Belum ada nomor'}</p>
+          <button class="btn btn-primary" style="margin-top:16px;max-width:200px;margin-left:auto;margin-right:auto;" onclick="openCustGuestForm()">✏️ Isi / Ubah Data</button>
+        </div>
+        <div class="card" style="padding:0;margin:0 16px;overflow:hidden;">
+          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="custWhatsAppAdmin()">
+            <span>💬</span><span>Hubungi Admin</span>
+          </div>
+          <div style="padding:16px;cursor:pointer;color:var(--red);display:flex;gap:12px;" onclick="custClearData()">
+            <span>🗑️</span><span style="color:var(--red);">Hapus Data Saya</span>
+          </div>
+        </div>
+        <div class="powered">Andalan Express v1.0</div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item active" data-tab="home" onclick="switchCustTab('home')"><span class="icon">🏠</span>Beranda</div>
+        <div class="nav-item" data-tab="orders" onclick="switchCustTab('orders')"><span class="icon">📋</span>Pesanan</div>
+        <div class="nav-item" data-tab="profile" onclick="switchCustTab('profile')"><span class="icon">👤</span>Profil</div>
+      </div>
+    </div>
+  `;
+
+  if (customerId) {
+    await loadCustOrders(customerId);
+    subscribeCustRealtime(customerId);
+  }
+  return () => {};
+}
+
+function switchCustTab(tab) {
+  document.querySelectorAll('#app .nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+  document.querySelectorAll('#app .page').forEach(p => p.classList.remove('active'));
+  document.getElementById('cust-page-' + tab)?.classList.add('active');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function openCustGuestForm() {
+  const g = getGuestData();
+  openGlobalModal(`
+    <h3>👤 Data Pemesan</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Isi data Anda sekali, tidak perlu daftar akun.</p>
+    <div class="field">
+      <label>Nama Lengkap <span class="req">*</span></label>
+      <input type="text" id="custGuestName" value="${escapeHtml(g?.name || '')}" placeholder="Nama Anda" autocomplete="name">
+    </div>
+    <div class="field">
+      <label>Nomor WhatsApp <span class="req">*</span></label>
+      <input type="tel" id="custGuestPhone" value="${escapeHtml(g?.phone || '')}" placeholder="08xxxxxxxxxx" autocomplete="tel">
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Nomor ini digunakan driver untuk menghubungi Anda.</div>
+    </div>
+    <button class="btn btn-primary" onclick="saveCustGuestData()">💾 Simpan Data</button>
+    ${g ? `<button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Batal</button>` : ''}
+  `);
+  setTimeout(() => document.getElementById('custGuestName')?.focus(), 300);
+}
+
+async function saveCustGuestData() {
+  const name = document.getElementById('custGuestName').value.trim();
+  const phone = document.getElementById('custGuestPhone').value.trim().replace(/\D/g, '');
+  if (!name || name.length < 2) { showToast('Nama minimal 2 karakter', 'error'); return; }
+  if (!phone || phone.length < 9) { showToast('Nomor HP tidak valid', 'error'); return; }
+  const normalizedPhone = normalizePhone(phone);
+
+  try {
+    let profileId = null;
+    const { data: newProfile, error } = await APP.supabase
+      .from('profiles')
+      .insert({ name, phone: normalizedPhone, email:`guest_${Date.now()}@andalan.local`, role:'customer', status:'active' })
+      .select().single();
+    profileId = error ? ('guest_' + crypto.randomUUID()) : newProfile.id;
+
+    saveGuestData({ id: profileId, name, phone: normalizedPhone });
+    closeGlobalModal();
+    showToast('✅ Data tersimpan', 'success');
+    await renderByRole('customer');
+  } catch (err) {
+    saveGuestData({ id:'guest_' + crypto.randomUUID(), name, phone: normalizedPhone });
+    closeGlobalModal();
+    showToast('✅ Tersimpan (offline mode)', 'success');
+    await renderByRole('customer');
+  }
+}
+
+async function loadCustOrders(customerId) {
+  const { data } = await APP.supabase.from('orders').select('*')
+    .eq('customer_id', customerId).order('created_at', { ascending:false }).limit(50);
+  const all = data || [];
+  const active = all.filter(o => !['SELESAI','DIBATALKAN'].includes(o.status));
+  const recent = all.filter(o => ['SELESAI','DIBATALKAN'].includes(o.status)).slice(0,3);
+  renderCustOrderList('custActiveOrders', active, 'Belum ada pesanan aktif');
+  renderCustOrderList('custRecentOrders', recent, 'Belum ada riwayat');
+  renderCustOrderList('custAllOrders', all, 'Belum ada pesanan');
+}
+
+function renderCustOrderList(containerId, orders, emptyMsg) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  if (!orders.length) {
+    c.innerHTML = `<div class="empty"><span class="icon">📭</span>${emptyMsg}</div>`;
+    return;
+  }
+  c.innerHTML = orders.map(o => `
+    <div class="card card-clickable" style="border-left:4px solid ${getStatusColor(o.status)};" onclick="openCustOrderDetail('${o.id}')">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <strong>${o.order_code}</strong>
+        <span class="badge" style="background:${getStatusColor(o.status)};">${o.status}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">
+        ${getServiceIcon(o.service_type)} ${o.service_type?.toUpperCase()}
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.5;">
+        🎯 ${escapeHtml(o.destination_address || '-')}
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:10px;align-items:center;">
+        <span class="price">Rp ${Number(o.total_price||0).toLocaleString('id-ID')}</span>
+        <span style="font-size:11px;color:var(--muted);">${formatTime(o.created_at)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function subscribeCustRealtime(customerId) {
+  APP.realtimeChannel = APP.supabase.channel('customer-' + customerId)
+    .on('postgres_changes', { event:'*', schema:'public', table:'orders', filter:`customer_id=eq.${customerId}` },
+      () => { loadCustOrders(customerId); showToast('📢 Update pesanan'); }
+    ).subscribe();
+}
+
+async function openCustOrderDetail(orderId) {
+  const { data: order } = await APP.supabase.from('orders').select('*').eq('id', orderId).single();
+  if (!order) return;
+  const { data: history } = await APP.supabase.from('order_status_history').select('*')
+    .eq('order_id', orderId).order('created_at');
+  let items = [];
+  if (order.service_type === 'kuliner') {
+    const { data: oi } = await APP.supabase.from('order_items').select('*').eq('order_id', orderId);
+    items = oi || [];
+  }
+  let driver = null;
+  if (order.driver_id) {
+    const { data: d } = await APP.supabase.from('drivers').select('*, profile:profile_id(name, phone)').eq('id', order.driver_id).maybeSingle();
+    driver = d;
+  }
+
+  const tracking = getTrackingSteps(order.service_type);
+  openGlobalModal(`
+    <h3>${getServiceIcon(order.service_type)} ${order.order_code}</h3>
+    <div class="field"><label>Status</label><div><span class="badge" style="background:${getStatusColor(order.status)};">${order.status}</span></div></div>
+    ${driver ? `
+      <div class="field">
+        <label>Driver</label>
+        <div style="display:flex;gap:12px;align-items:center;background:#EFF6FF;padding:12px;border-radius:12px;">
+          <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;">
+            ${(driver.profile?.name || 'D').charAt(0).toUpperCase()}
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:700;">${escapeHtml(driver.profile?.name || 'Driver')}</div>
+            <div style="font-size:11px;color:var(--muted);">${driver.vehicle_type || ''} · ${driver.vehicle_number || ''}</div>
+          </div>
+          ${driver.profile?.phone ? `<a href="https://wa.me/${normalizePhone(driver.profile.phone)}" target="_blank" style="width:40px;height:40px;background:var(--green);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;">💬</a>` : ''}
+        </div>
+      </div>
+    ` : ''}
+    <div class="field"><label>Pickup</label><div>📍 ${escapeHtml(order.pickup_address || '-')}</div></div>
+    <div class="field"><label>Tujuan</label><div>🎯 ${escapeHtml(order.destination_address || '-')}</div></div>
+    ${items.length ? `
+      <div class="field">
+        <label>Item</label>
+        <div style="background:#F8FAFC;padding:10px 12px;border-radius:10px;font-size:13px;">
+          ${items.map(i => `• ${escapeHtml(i.item_name)} × ${i.quantity} = Rp ${Number(i.subtotal).toLocaleString('id-ID')}`).join('<br>')}
+        </div>
+      </div>` : ''}
+    ${order.customer_note ? `<div class="field"><label>Catatan</label><div>${escapeHtml(order.customer_note)}</div></div>` : ''}
+    <div class="field">
+      <label>Rincian</label>
+      <div style="background:#F8FAFC;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.7;">
+        ${order.subtotal > 0 ? `Subtotal: Rp ${Number(order.subtotal).toLocaleString('id-ID')}<br>` : ''}
+        Jarak: ${Number(order.distance_km||0).toFixed(1)} km<br>
+        Jasa: Rp ${Number(order.delivery_fee||0).toLocaleString('id-ID')}<br>
+        Biaya layanan: Rp ${Number(order.service_fee||0).toLocaleString('id-ID')}<br>
+        <strong style="color:var(--green);">Total: Rp ${Number(order.total_price).toLocaleString('id-ID')}</strong>
+      </div>
+    </div>
+    <div class="field">
+      <label>Progres</label>
+      <div style="background:#F8FAFC;padding:12px;border-radius:12px;">
+        ${tracking.map(step => {
+          const done = history?.some(h => h.status === step.status) && step.status !== order.status;
+          const active = step.status === order.status;
+          const color = active ? 'var(--primary)' : done ? 'var(--green)' : '#CBD5E1';
+          const weight = (active || done) ? '600' : '400';
+          return `<div style="display:flex;gap:10px;align-items:center;margin-bottom:6px;font-size:12px;color:${color};font-weight:${weight};">
+            <span style="width:10px;height:10px;border-radius:50%;background:${color};"></span>${step.label}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closeGlobalModal()">Tutup</button>
+      <button class="btn btn-primary" onclick="custWhatsAppAdmin('${order.order_code}')">💬 Bantuan</button>
+    </div>
+  `);
+}
+
+function getTrackingSteps(serviceType) {
+  if (serviceType === 'kuliner') {
+    return [
+      { status:'MENUNGGU', label:'Order dibuat' },
+      { status:'DIPROSES', label:'Diterima mitra' },
+      { status:'SIAP DIAMBIL', label:'Siap diambil' },
+      { status:'DITUGASKAN', label:'Driver ditugaskan' },
+      { status:'MENUJU PICKUP', label:'Driver menuju lokasi' },
+      { status:'DIAMBIL', label:'Pesanan diambil' },
+      { status:'MENUJU TUJUAN', label:'Menuju lokasi Anda' },
+      { status:'SELESAI', label:'Pesanan tiba' }
+    ];
+  }
+  return [
+    { status:'MENUNGGU', label:'Order dibuat' },
+    { status:'DIPROSES', label:'Diproses admin' },
+    { status:'DITUGASKAN', label:'Driver ditugaskan' },
+    { status:'MENUJU PICKUP', label:'Driver menuju pickup' },
+    { status:'DIAMBIL', label:'Barang/penumpang diambil' },
+    { status:'MENUJU TUJUAN', label:'Menuju tujuan' },
+    { status:'SELESAI', label:'Selesai' }
+  ];
+}
+
+function custWhatsAppAdmin(orderCode) {
+  const phone = APP.config.admin_phone || ADMIN_PHONE_FALLBACK;
+  const msg = orderCode ? `Halo Admin Andalan Express, saya butuh bantuan untuk order ${orderCode}.` : `Halo Admin Andalan Express.`;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function custClearData() {
+  showConfirm({ icon:'🗑️', title:'Hapus Data?', message:'Data Anda akan dihapus dari perangkat.', confirmText:'Ya, Hapus', confirmColor:'red' })
+    .then(ok => { if (ok) { localStorage.removeItem('andalan_guest'); window.location.reload(); } });
+}
+
+/* ---- Order Form Customer ---- */
+function openOrderForm(type) {
+  const g = getGuestData();
+  if (!g || !g.id) { showToast('Isi nama & nomor HP dulu', 'error'); openCustGuestForm(); return; }
+
+  const titles = { kurir:'📦 Kirim Paket / Dokumen', jastip:'🛍️ Jasa Titip', kuliner:'🍜 Pesan Makanan', ojek:'🏍️ Ojek Online' };
+  let html = `<h3>${titles[type]}</h3>`;
+
+  if (type === 'kurir') {
+    html += `
+      <div class="field">
+        <label>Alamat Pickup <span class="req">*</span></label>
+        <input type="text" id="fldPickup" placeholder="Ketik alamat pickup" autocomplete="off">
+        <div class="quick-loc"><button onclick="useCurrentLocation('fldPickup', () => triggerEstimate('kurir'))">📍 Pakai Lokasi Saya</button></div>
+      </div>
+      <div class="field">
+        <label>Alamat Tujuan <span class="req">*</span></label>
+        <input type="text" id="fldDest" placeholder="Ketik alamat tujuan" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Jenis Barang <span class="req">*</span></label>
+        <select id="fldItemType">
+          <option value="Dokumen">Dokumen / Surat</option>
+          <option value="Kecil">Paket Kecil (< 5 kg)</option>
+          <option value="Sedang">Paket Sedang (5-15 kg)</option>
+          <option value="Besar">Paket Besar (> 15 kg)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Catatan (opsional)</label>
+        <textarea id="fldNote" placeholder="Fragile, jangan dibalik..."></textarea>
+      </div>
+      <div class="price-estimate">
+        <div class="label">Estimasi Biaya</div>
+        <div class="price" id="estPrice">Rp 0</div>
+        <div class="detail" id="estDetail">Isi alamat pickup & tujuan</div>
+      </div>
+      <button class="btn btn-primary" id="btnSubmitOrder">Pesan Sekarang</button>
+    `;
+  } else if (type === 'ojek') {
+    html += `
+      <div class="field">
+        <label>Lokasi Jemput <span class="req">*</span></label>
+        <input type="text" id="fldPickup" placeholder="Lokasi Anda" autocomplete="off">
+        <div class="quick-loc"><button onclick="useCurrentLocation('fldPickup', () => triggerEstimate('ojek'))">📍 Pakai Lokasi Saya</button></div>
+      </div>
+      <div class="field">
+        <label>Lokasi Tujuan <span class="req">*</span></label>
+        <input type="text" id="fldDest" placeholder="Mau ke mana?" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Kendaraan</label>
+        <select id="fldVehicle">
+          <option value="Motor">🏍️ Motor (1 orang)</option>
+          <option value="Mobil">🚗 Mobil (1-4 orang)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Catatan (opsional)</label>
+        <textarea id="fldNote" placeholder="Titik jemput di depan gedung..."></textarea>
+      </div>
+      <div class="price-estimate">
+        <div class="label">Estimasi Biaya</div>
+        <div class="price" id="estPrice">Rp 0</div>
+        <div class="detail" id="estDetail">Isi lokasi jemput & tujuan</div>
+      </div>
+      <button class="btn btn-primary" id="btnSubmitOrder">Pesan Ojek</button>
+    `;
+  } else if (type === 'jastip') {
+    html += `
+      <div class="field">
+        <label>Nama Toko / Lokasi Beli <span class="req">*</span></label>
+        <input type="text" id="fldStore" placeholder="Contoh: Indomaret Sudirman" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Barang yang Ingin Dibeli <span class="req">*</span></label>
+        <input type="text" id="fldItem" placeholder="Contoh: Susu Ultra 1L">
+      </div>
+      <div class="field">
+        <label>Jumlah <span class="req">*</span></label>
+        <input type="number" id="fldQty" value="1" min="1">
+      </div>
+      <div class="field">
+        <label>Budget (Rp) <span class="req">*</span></label>
+        <input type="number" id="fldBudget" placeholder="50000" min="1000">
+      </div>
+      <div class="field">
+        <label>Alamat Pengantaran <span class="req">*</span></label>
+        <input type="text" id="fldDest" placeholder="Alamat lengkap" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Catatan (opsional)</label>
+        <textarea id="fldNote" placeholder="Merek tertentu, warna..."></textarea>
+      </div>
+      <div class="price-estimate">
+        <div class="label">Estimasi Biaya Jasa</div>
+        <div class="price" id="estPrice">Rp 0</div>
+        <div class="detail" id="estDetail">Belum termasuk harga barang</div>
+      </div>
+      <button class="btn btn-primary" id="btnSubmitOrder">Pesan Jastip</button>
+    `;
+  } else if (type === 'kuliner') {
+    html += `<div id="partnerContainer"><div class="skeleton"></div></div>`;
+  }
+
+  html += `<button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Batal</button>`;
+  openGlobalModal(html);
+
+  setTimeout(() => {
+    if (type === 'kurir' || type === 'ojek') {
+      setupAutocomplete('fldPickup', () => triggerEstimate(type));
+      setupAutocomplete('fldDest', () => triggerEstimate(type));
+      const btn = document.getElementById('btnSubmitOrder');
+      if (btn) btn.onclick = () => submitOrder(type);
+    } else if (type === 'jastip') {
+      setupAutocomplete('fldStore', () => triggerEstimate(type));
+      setupAutocomplete('fldDest', () => triggerEstimate(type));
+      const btn = document.getElementById('btnSubmitOrder');
+      if (btn) btn.onclick = () => submitOrder(type);
+    } else if (type === 'kuliner') {
+      loadPartnersForOrder();
+    }
+  }, 400);
+}
+
+let estTimer = null;
+function triggerEstimate(type) {
+  clearTimeout(estTimer);
+  estTimer = setTimeout(() => updateEstimate(type), 700);
+}
+
+async function updateEstimate(type) {
+  if (type === 'kuliner') { updateKulinerTotal(); return; }
+  const priceEl = document.getElementById('estPrice');
+  const detailEl = document.getElementById('estDetail');
+  if (!priceEl || !detailEl) return;
+
+  let pickup, dest;
+  if (type === 'jastip') {
+    pickup = document.getElementById('fldStore')?.value?.trim();
+    dest = document.getElementById('fldDest')?.value?.trim();
+  } else {
+    pickup = document.getElementById('fldPickup')?.value?.trim();
+    dest = document.getElementById('fldDest')?.value?.trim();
+  }
+
+  if (!pickup || !dest || pickup.length < 3 || dest.length < 3) {
+    priceEl.innerText = 'Rp 0';
+    detailEl.innerText = 'Isi alamat dengan lengkap';
+    return;
+  }
+
+  priceEl.innerText = 'Menghitung...';
+  detailEl.innerText = 'Mohon tunggu...';
+
+  try {
+    const route = await getDistance(pickup, dest);
+    const cost = calculateCost({ serviceType:type, distanceKm:route.distance_km });
+    priceEl.innerText = 'Rp ' + cost.total_price.toLocaleString('id-ID');
+    detailEl.innerHTML = `Jarak: ${route.distance_km} km (±${route.duration_min} menit)<br>Jasa: Rp ${cost.service_cost.toLocaleString('id-ID')}<br>Biaya layanan: Rp ${cost.service_fee.toLocaleString('id-ID')}`;
+  } catch (err) {
+    priceEl.innerText = 'Rp 0';
+    detailEl.innerHTML = '⚠️ ' + escapeHtml(err.message);
+  }
+}
+
+let partnersCache = [], menusCache = {}, selectedPartner = null, selectedMenuItems = {};
+
+async function loadPartnersForOrder() {
+  const c = document.getElementById('partnerContainer');
+  if (!c) return;
+  const { data } = await APP.supabase.from('partners').select('*').eq('status','OPEN').order('business_name');
+  partnersCache = data || [];
+  if (!partnersCache.length) {
+    c.innerHTML = '<div class="empty"><span class="icon">🍽️</span>Belum ada mitra buka.<br>Coba lagi nanti.</div>';
+    return;
+  }
+  c.innerHTML = `
+    <div class="field"><label>Pilih Mitra <span class="req">*</span></label></div>
+    <div id="partnerList">
+      ${partnersCache.map(p => `
+        <div class="driver-item" data-id="${p.id}" onclick="selectPartner('${p.id}')">
+          <div class="avatar">${(p.business_name||'M').charAt(0).toUpperCase()}</div>
+          <div class="info">
+            <div class="name">${escapeHtml(p.business_name)}</div>
+            <div class="meta">📍 ${escapeHtml(p.address || '-')}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div id="menuListContainer"></div>
+    <div id="kulinerFields" style="display:none;">
+      <div class="field" style="margin-top:12px;">
+        <label>Alamat Pengantaran <span class="req">*</span></label>
+        <input type="text" id="fldDest" placeholder="Alamat lengkap" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Catatan (opsional)</label>
+        <textarea id="fldNote" placeholder="Pedas, tanpa sambal..."></textarea>
+      </div>
+      <div class="price-estimate">
+        <div class="label">Total Pesanan</div>
+        <div class="price" id="estPrice">Rp 0</div>
+        <div class="detail" id="estDetail">Belum ada item dipilih</div>
+      </div>
+      <button class="btn btn-primary" id="btnSubmitOrder">Pesan Sekarang</button>
+    </div>
+  `;
+}
+
+async function selectPartner(partnerId) {
+  selectedPartner = partnersCache.find(p => p.id === partnerId);
+  if (!selectedPartner) return;
+  document.querySelectorAll('#partnerList .driver-item').forEach(el => el.classList.toggle('selected', el.dataset.id === partnerId));
+  const mc = document.getElementById('menuListContainer');
+  mc.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">Memuat menu...</div>';
+  if (!menusCache[partnerId]) {
+    const { data } = await APP.supabase.from('menus').select('*').eq('partner_id', partnerId).eq('is_available', true).order('category');
+    menusCache[partnerId] = data || [];
+  }
+  renderMenuPicker(menusCache[partnerId]);
+  document.getElementById('kulinerFields').style.display = 'block';
+  setTimeout(() => {
+    setupAutocomplete('fldDest', () => {});
+    const btn = document.getElementById('btnSubmitOrder');
+    if (btn) btn.onclick = () => submitOrder('kuliner');
+  }, 300);
+}
+
+function renderMenuPicker(menus) {
+  const c = document.getElementById('menuListContainer');
+  if (!menus.length) { c.innerHTML = '<div class="empty">Menu belum tersedia</div>'; return; }
+  const grouped = {};
+  menus.forEach(m => { const k = m.category || 'Lainnya'; if (!grouped[k]) grouped[k] = []; grouped[k].push(m); });
+  let html = '';
+  Object.entries(grouped).forEach(([cat, items]) => {
+    html += `<div style="font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;margin:12px 0 6px;">${cat}</div>`;
+    html += items.map(m => {
+      const qty = selectedMenuItems[m.id]?.qty || 0;
+      const img = m.image_url ? `<img src="${m.image_url}" alt="">` : '🍽️';
+      return `<div class="driver-item" style="${qty>0?'border-color:var(--primary);background:#EFF6FF;':''}">
+        <div class="avatar" style="background:#F1F5F9;color:inherit;overflow:hidden;">${img}</div>
+        <div class="info">
+          <div class="name">${escapeHtml(m.name)}</div>
+          <div class="meta">Rp ${Number(m.price).toLocaleString('id-ID')}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          ${qty>0?`<button class="icon-btn" onclick="changeQty('${m.id}',-1)">−</button><span style="font-weight:700;min-width:20px;text-align:center;">${qty}</span>`:''}
+          <button class="icon-btn" style="background:var(--primary);color:white;" onclick="changeQty('${m.id}',1)">+</button>
+        </div>
+      </div>`;
+    }).join('');
+  });
+  c.innerHTML = html;
+}
+
+function changeQty(menuId, delta) {
+  if (!selectedPartner) return;
+  const menu = (menusCache[selectedPartner.id] || []).find(m => m.id === menuId);
+  if (!menu) return;
+  if (!selectedMenuItems[menuId]) selectedMenuItems[menuId] = { menu, qty: 0 };
+  selectedMenuItems[menuId].qty += delta;
+  if (selectedMenuItems[menuId].qty <= 0) delete selectedMenuItems[menuId];
+  renderMenuPicker(menusCache[selectedPartner.id]);
+  updateKulinerTotal();
+}
+
+function updateKulinerTotal() {
+  const items = Object.values(selectedMenuItems);
+  const subtotal = items.reduce((s,i) => s + i.menu.price * i.qty, 0);
+  const rule = getRule('kuliner');
+  const markup = Math.round(subtotal * (rule.umkm_markup_pct / 100));
+  const total = subtotal + markup;
+  const priceEl = document.getElementById('estPrice');
+  const detailEl = document.getElementById('estDetail');
+  if (priceEl) priceEl.innerText = 'Rp ' + total.toLocaleString('id-ID');
+  if (detailEl) {
+    if (!items.length) detailEl.innerText = 'Belum ada item dipilih';
+    else {
+      const count = items.reduce((s,i) => s + i.qty, 0);
+      detailEl.innerHTML = `${count} item<br>Subtotal: Rp ${subtotal.toLocaleString('id-ID')}<br>(termasuk markup Rp ${markup.toLocaleString('id-ID')})<br><em style="font-size:10px;">Ongkir dihitung saat pesan</em>`;
+    }
+  }
+}
+
+async function submitOrder(type) {
+  const g = getGuestData();
+  if (!g || !g.id) { showToast('Isi data dulu', 'error'); return; }
+  const btn = document.getElementById('btnSubmitOrder');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span>Memproses...'; }
+
+  try {
+    let pickup = '', dest = '', subtotal = 0, partnerId = null, items = [], note = '';
+
+    if (type === 'kurir') {
+      pickup = document.getElementById('fldPickup').value.trim();
+      dest = document.getElementById('fldDest').value.trim();
+      const itemType = document.getElementById('fldItemType').value;
+      note = `[${itemType}] ${document.getElementById('fldNote').value.trim()}`.trim();
+      if (!pickup || !dest) throw new Error('Alamat pickup & tujuan wajib diisi');
+    } else if (type === 'ojek') {
+      pickup = document.getElementById('fldPickup').value.trim();
+      dest = document.getElementById('fldDest').value.trim();
+      const vehicle = document.getElementById('fldVehicle').value;
+      note = `[${vehicle}] ${document.getElementById('fldNote').value.trim()}`.trim();
+      if (!pickup || !dest) throw new Error('Lokasi jemput & tujuan wajib diisi');
+    } else if (type === 'jastip') {
+      pickup = document.getElementById('fldStore').value.trim();
+      dest = document.getElementById('fldDest').value.trim();
+      const item = document.getElementById('fldItem').value.trim();
+      const qty = document.getElementById('fldQty').value;
+      const budget = document.getElementById('fldBudget').value;
+      if (!pickup || !dest || !item || !budget) throw new Error('Semua field wajib diisi');
+      note = `Beli: ${item} x${qty} | Budget: Rp ${budget} | ${document.getElementById('fldNote').value.trim()}`.trim();
+    } else if (type === 'kuliner') {
+      if (!selectedPartner) throw new Error('Pilih mitra dulu');
+      items = Object.values(selectedMenuItems);
+      if (!items.length) throw new Error('Pilih minimal 1 menu');
+      dest = document.getElementById('fldDest').value.trim();
+      if (!dest) throw new Error('Alamat pengantaran wajib diisi');
+      pickup = selectedPartner.address || selectedPartner.business_name;
+      partnerId = selectedPartner.id;
+      subtotal = items.reduce((s,i) => s + i.menu.price * i.qty, 0);
+      note = document.getElementById('fldNote').value.trim();
+    }
+
+    if (btn) btn.innerHTML = '<span class="spinner-sm"></span>Menghitung jarak...';
+    const route = await getDistance(pickup, dest);
+    const cost = calculateCost({ serviceType:type, distanceKm:route.distance_km, subtotal });
+
+    if (btn) btn.innerHTML = '<span class="spinner-sm"></span>Menyimpan...';
+
+    const orderData = {
+      customer_id: g.id,
+      service_type: type,
+      status: 'MENUNGGU',
+      pickup_address: pickup,
+      destination_address: dest,
+      distance_km: cost.distance_km,
+      subtotal: cost.subtotal,
+      service_fee: cost.service_fee,
+      delivery_fee: cost.service_cost,
+      umkm_markup: cost.umkm_markup,
+      total_price: cost.total_price,
+      driver_earnings: cost.driver_earnings,
+      mitra_earnings: cost.mitra_earnings,
+      platform_earnings: cost.platform_earnings,
+      partner_id: partnerId,
+      customer_note: note
+    };
+
+    const { data: newOrder, error } = await APP.supabase.from('orders').insert([orderData]).select().single();
+    if (error) throw new Error('Gagal simpan: ' + error.message);
+
+    if (type === 'kuliner' && newOrder) {
+      const orderItems = items.map(i => ({
+        order_id: newOrder.id, menu_id: i.menu.id,
+        item_name: i.menu.name, quantity: i.qty,
+        price: i.menu.price, subtotal: i.menu.price * i.qty
+      }));
+      await APP.supabase.from('order_items').insert(orderItems);
+    }
+
+    await APP.supabase.from('order_status_history').insert({
+      order_id: newOrder.id, status:'MENUNGGU',
+      note: `Order dibuat. Jarak: ${cost.distance_km} km`
+    });
+
+    showToast('✅ Pesanan berhasil!', 'success');
+    selectedMenuItems = {}; selectedPartner = null;
+    closeGlobalModal();
+    await loadCustOrders(g.id);
+  } catch (err) {
+    console.error('Submit error:', err);
+    showToast('Gagal: ' + err.message, 'error');
+    if (btn) { btn.disabled = false; btn.innerText = 'Pesan Sekarang'; }
+  }
+}
+
+/* ================================================================
+   DRIVER VIEW
+   ================================================================ */
+async function renderDriverView(root) {
+  root.innerHTML = `
+    <div class="container">
+      <div class="page active" id="drv-page-home">
+        <div class="header">
+          <div>
+            <h1>ANDALAN EXPRESS</h1>
+            <div class="name">${escapeHtml(APP.profile?.name || 'Driver')}</div>
+            <div class="sub">Driver · ${APP.data.driver?.vehicle_type || 'Motor'}</div>
+          </div>
+          <button class="online-toggle" onclick="drvToggleOnline()">
+            <span class="dot-status" id="drvStatusDot"></span>
+            <span id="drvStatusText">OFFLINE</span>
+          </button>
+        </div>
+
+        <div class="wallet-hero">
+          <div class="lbl">💰 Saldo Aktif</div>
+          <div class="val" id="drvBalance">Rp 0</div>
+          <div class="meta">
+            <span>📈 Total: <strong id="drvTotalEarned">Rp 0</strong></span>
+            <span>💵 Hari ini: <strong id="drvTodayEarn">Rp 0</strong></span>
+          </div>
+        </div>
+
+        <div class="driver-stats">
+          <div class="driver-stat"><div class="val" id="drvStatToday">0</div><div class="lbl">Order Hari Ini</div></div>
+          <div class="driver-stat"><div class="val" id="drvStatDone">0</div><div class="lbl">Selesai</div></div>
+          <div class="driver-stat"><div class="val" id="drvStatRating">5.0</div><div class="lbl">Rating</div></div>
+        </div>
+
+        <div class="section" style="margin-top:8px;">
+          <h2>📊 Performa 7 Hari</h2>
+          <div class="chart-card">
+            <div style="height:180px;position:relative;"><canvas id="drvChart7d"></canvas></div>
+            <div class="chart-stats">
+              <div class="item">
+                <div class="lbl">Rata-rata</div>
+                <div class="val" style="color:var(--primary);" id="drvAvgDaily">Rp 0</div>
+              </div>
+              <div class="item">
+                <div class="lbl">Total 7 Hari</div>
+                <div class="val" style="color:var(--green);" id="drvTotal7d">Rp 0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:16px;">
+          <h2>🚀 Order Aktif <span class="badge" id="drvActiveCount" style="background:var(--primary);display:none;">0</span></h2>
+          <div id="drvActiveOrders"><div class="skeleton"></div></div>
+        </div>
+
+        <div class="section" style="margin:20px 0 20px;">
+          <h2>📋 Order Tersedia</h2>
+          <div id="drvNextOrders"><div class="empty"><span class="icon">📭</span>Belum ada order</div></div>
+        </div>
+      </div>
+
+      <div class="page" id="drv-page-history">
+        <div class="header">
+          <div><h1>ANDALAN EXPRESS</h1><div class="name">Riwayat</div><div class="sub">Order yang telah selesai</div></div>
+        </div>
+        <div style="padding:16px;" id="drvHistoryContainer"><div class="skeleton"></div></div>
+      </div>
+
+      <div class="page" id="drv-page-income">
+        <div class="header">
+          <div><h1>ANDALAN EXPRESS</h1><div class="name">Pendapatan</div><div class="sub">Rincian penghasilan</div></div>
+        </div>
+
+        <div class="wallet-hero">
+          <div class="lbl">💰 Saldo Sekarang</div>
+          <div class="val" id="drvIncomeBalance">Rp 0</div>
+          <div class="meta">
+            <span>📈 Total: <strong id="drvIncomeTotal">Rp 0</strong></span>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:8px;">
+          <h2>📊 Chart 30 Hari</h2>
+          <div class="chart-card">
+            <div style="height:180px;position:relative;"><canvas id="drvChart30d"></canvas></div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:20px;">
+          <h2>💳 Mutasi Saldo Terbaru</h2>
+          <div id="drvWalletTx"><div class="skeleton"></div></div>
+        </div>
+
+        <div class="section" style="margin:20px 0;">
+          <h2>📊 Order Selesai Hari Ini</h2>
+          <div id="drvIncomeList"><div class="skeleton"></div></div>
+        </div>
+      </div>
+
+      <div class="page" id="drv-page-profile">
+        <div class="header">
+          <div><h1>ANDALAN EXPRESS</h1><div class="name">Profil</div><div class="sub">Informasi akun</div></div>
+        </div>
+        <div style="background:white;padding:24px 20px;text-align:center;border-radius:20px;margin:16px;box-shadow:var(--shadow);">
+          <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#4A9EFF);color:white;font-size:32px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+            ${(APP.profile?.name || 'D').charAt(0).toUpperCase()}
+          </div>
+          <h2 style="font-size:18px;margin-bottom:4px;">${escapeHtml(APP.profile?.name || 'Driver')}</h2>
+          <p style="font-size:13px;color:var(--muted);" id="drvProfilePhone">${APP.profile?.phone || '-'}</p>
+          <p style="margin-top:6px;"><span class="badge" id="drvProfileBadge" style="background:#94A3B8;">OFFLINE</span></p>
+        </div>
+        <div class="card" style="padding:0;margin:0 16px;overflow:hidden;">
+          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="drvWhatsAppAdmin()">
+            <span>💬</span><span>Hubungi Admin</span>
+          </div>
+          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="drvRefreshLocation()">
+            <span>📍</span><span>Update Lokasi GPS</span>
+          </div>
+          <div style="padding:16px;cursor:pointer;color:var(--red);display:flex;gap:12px;" onclick="drvLogout()">
+            <span>🚪</span><span style="color:var(--red);">Keluar</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item active" data-tab="home" onclick="switchDrvTab('home')"><span class="icon">🏠</span>Beranda</div>
+        <div class="nav-item" data-tab="history" onclick="switchDrvTab('history')"><span class="icon">📋</span>Riwayat</div>
+        <div class="nav-item" data-tab="income" onclick="switchDrvTab('income')"><span class="icon">💰</span>Pendapatan</div>
+        <div class="nav-item" data-tab="profile" onclick="switchDrvTab('profile')"><span class="icon">👤</span>Profil</div>
+      </div>
+    </div>
+  `;
+
+  await loadDriverProfile();
+  await loadDriverHome();
+  await loadDriverWallet();
+  startDriverLocationTracking();
+  return () => {
+    if (window.__drvWatchId) navigator.geolocation.clearWatch(window.__drvWatchId);
+  };
+}
+
+async function loadDriverProfile() {
+  const { data: driver } = await APP.supabase.from('drivers').select('*').eq('profile_id', APP.user.id).maybeSingle();
+  if (!driver) { showToast('Data driver belum dibuat. Hubungi admin.', 'error'); return; }
+  APP.data.driver = driver;
+  updateDrvStatusUI(driver.online_status);
+}
+
+function updateDrvStatusUI(status) {
+  const dot = document.getElementById('drvStatusDot');
+  const txt = document.getElementById('drvStatusText');
+  const badge = document.getElementById('drvProfileBadge');
+  if (!dot) return;
+  dot.classList.remove('online','busy');
+  if (status === 'ONLINE') { dot.classList.add('online'); txt.innerText = 'ONLINE'; if (badge) { badge.style.background = 'var(--green)'; badge.innerText = 'ONLINE'; } }
+  else if (status === 'BUSY') { dot.classList.add('busy'); txt.innerText = 'BUSY'; if (badge) { badge.style.background = 'var(--orange)'; badge.innerText = 'BUSY'; } }
+  else { txt.innerText = 'OFFLINE'; if (badge) { badge.style.background = '#94A3B8'; badge.innerText = 'OFFLINE'; } }
+}
+
+async function loadDriverHome() {
+  const driver = APP.data.driver;
+  if (!driver) return;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const { data: todayOrders } = await APP.supabase.from('orders').select('*')
+    .eq('driver_id', driver.id).gte('created_at', today.toISOString());
+  const list = todayOrders || [];
+  document.getElementById('drvStatToday').innerText = list.length;
+  document.getElementById('drvStatDone').innerText = list.filter(o => o.status === 'SELESAI').length;
+  document.getElementById('drvStatRating').innerText = Number(driver.rating || 5).toFixed(1);
+
+  const { data: active } = await APP.supabase.from('orders').select('*')
+    .eq('driver_id', driver.id)
+    .in('status', ['DITUGASKAN','DITERIMA DRIVER','MENUJU PICKUP','SAMPAI PICKUP','DIAMBIL','MENUJU TUJUAN'])
+    .order('created_at');
+  await enrichDriverOrders(active || []);
+
+  const c = document.getElementById('drvActiveOrders');
+  const cnt = document.getElementById('drvActiveCount');
+  if (!active || active.length === 0) {
+    c.innerHTML = `<div class="empty"><span class="icon">🛵</span>Belum ada order aktif.<br>${driver.online_status === 'ONLINE' ? 'Menunggu order dari admin...' : 'Aktifkan ONLINE untuk menerima order.'}</div>`;
+    if (cnt) cnt.style.display = 'none';
+  } else {
+    if (cnt) { cnt.innerText = active.length; cnt.style.display = 'inline-block'; }
+    c.innerHTML = active.map(o => renderDriverOrderCard(o)).join('');
+  }
+
+  const { data: next } = await APP.supabase.from('orders').select('*')
+    .is('driver_id', null).eq('status','MENUNGGU').order('created_at').limit(5);
+  await enrichDriverOrders(next || []);
+  const nc = document.getElementById('drvNextOrders');
+  if (!next || next.length === 0) {
+    nc.innerHTML = '<div class="empty"><span class="icon">📭</span>Belum ada order</div>';
+  } else {
+    nc.innerHTML = next.map(o => `
+      <div class="card" style="border-left:4px solid var(--orange);">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <strong>${o.order_code}</strong>
+          <span class="badge" style="background:var(--orange);">MENUNGGU</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">
+          ${getServiceIcon(o.service_type)} ${o.service_type?.toUpperCase()}
+        </div>
+        <div style="font-size:12px;line-height:1.6;">
+          📍 ${escapeHtml(o.pickup_address || '-')}<br>
+          🎯 ${escapeHtml(o.destination_address || '-')}
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:10px;">
+          <span class="price">Rp ${Number(o.total_price).toLocaleString('id-ID')}</span>
+          <span style="font-size:11px;color:var(--muted);">${formatTime(o.created_at)}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+async function enrichDriverOrders(orders) {
+  if (!orders.length) return;
+  const custIds = [...new Set(orders.map(o => o.customer_id).filter(Boolean))];
+  if (!custIds.length) return;
+  const { data: profs } = await APP.supabase.from('profiles').select('id, name, phone').in('id', custIds);
+  const map = {};
+  (profs||[]).forEach(p => map[p.id] = p);
+  orders.forEach(o => o.customer = map[o.customer_id] || null);
+}
+
+function renderDriverOrderCard(o) {
+  const customer = o.customer || {};
+  const pickupDone = ['DIAMBIL','MENUJU TUJUAN','SELESAI'].includes(o.status);
+  const destActive = ['DIAMBIL','MENUJU TUJUAN'].includes(o.status);
+  return `
+    <div class="card" style="border-left:4px solid ${getStatusColor(o.status)};">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <strong>${o.order_code}</strong>
+        <span class="badge" style="background:${getStatusColor(o.status)};">${o.status}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">
+        ${getServiceIcon(o.service_type)} ${o.service_type?.toUpperCase()} · ${escapeHtml(customer.name || '-')}
+      </div>
+      <div style="padding:8px 10px;border-radius:10px;background:${pickupDone?'#F0FDF4':'#EFF6FF'};margin-bottom:6px;font-size:12px;">
+        <div style="font-size:10px;text-transform:uppercase;font-weight:700;color:var(--muted);margin-bottom:2px;">
+          ${pickupDone ? '✓ Pickup' : '📍 Pickup'}
+        </div>
+        <strong>${escapeHtml(o.pickup_address || '-')}</strong>
+      </div>
+      <div style="padding:8px 10px;border-radius:10px;background:${destActive?'#EFF6FF':'#F8FAFC'};margin-bottom:8px;font-size:12px;">
+        <div style="font-size:10px;text-transform:uppercase;font-weight:700;color:var(--muted);margin-bottom:2px;">🎯 Tujuan</div>
+        <strong>${escapeHtml(o.destination_address || '-')}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span class="price">Rp ${Number(o.driver_earnings || o.delivery_fee || 0).toLocaleString('id-ID')}</span>
+        <span style="font-size:11px;color:var(--muted);">${formatTime(o.created_at)}</span>
+      </div>
+      ${renderDriverActions(o)}
+    </div>
+  `;
+}
+
+function renderDriverActions(o) {
+  const statusActions = {
+    'DITUGASKAN': { label:'✅ Terima Order', next:'DITERIMA DRIVER', color:'btn-primary' },
+    'DITERIMA DRIVER': { label:'🚀 Menuju Pickup', next:'MENUJU PICKUP', color:'btn-orange' },
+    'MENUJU PICKUP': { label:'📍 Sampai di Pickup', next:'SAMPAI PICKUP', color:'btn-orange' },
+    'SAMPAI PICKUP': { label:'📦 Diambil', next:'DIAMBIL', color:'btn-green' },
+    'DIAMBIL': { label:'🛣️ Menuju Tujuan', next:'MENUJU TUJUAN', color:'btn-primary' },
+    'MENUJU TUJUAN': { label:'✅ Selesaikan', next:'SELESAI', color:'btn-green' }
+  };
+  const action = statusActions[o.status];
+  const customer = o.customer || {};
+  return `
+    <div class="btn-row">
+      <button class="btn btn-ghost btn-sm" onclick="drvOpenOrderDetail('${o.id}')">Detail</button>
+      ${customer.phone ? `<button class="btn btn-outline btn-sm" onclick="drvChatCustomer('${customer.phone}','${o.order_code}')">💬 Chat</button>` : ''}
+    </div>
+    <button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="drvOpenNavigation('${o.id}')">
+      🗺️ Navigasi ke ${['DIAMBIL','MENUJU TUJUAN'].includes(o.status) ? 'Tujuan' : 'Pickup'}
+    </button>
+    ${action ? `<button class="btn ${action.color} btn-sm" style="margin-top:8px;" onclick="drvUpdateStatus('${o.id}','${action.next}')">${action.label}</button>` : ''}
+  `;
+}
+
+async function loadDriverWallet() {
+  if (!APP.user) return;
+  const stats = await getWalletStats(APP.user.id, 7);
+
+  const balEl = document.getElementById('drvBalance');
+  if (balEl) balEl.innerText = 'Rp ' + Number(stats.wallet?.balance || 0).toLocaleString('id-ID');
+  const totEl = document.getElementById('drvTotalEarned');
+  if (totEl) totEl.innerText = 'Rp ' + Number(stats.wallet?.total_earned || 0).toLocaleString('id-ID');
+
+  const todayKey = new Date().toISOString().slice(0,10);
+  const todayAmt = stats.daily.find(d => d.day === todayKey)?.amount || 0;
+  const todayEl = document.getElementById('drvTodayEarn');
+  if (todayEl) todayEl.innerText = 'Rp ' + todayAmt.toLocaleString('id-ID');
+
+  renderDailyChart('drvChart7d', stats.daily, '#0B7CFF');
+
+  const avgEl = document.getElementById('drvAvgDaily');
+  if (avgEl) avgEl.innerText = 'Rp ' + Math.round(stats.avg).toLocaleString('id-ID');
+  const tot7El = document.getElementById('drvTotal7d');
+  if (tot7El) tot7El.innerText = 'Rp ' + Math.round(stats.total).toLocaleString('id-ID');
+}
+
+async function drvToggleOnline() {
+  const driver = APP.data.driver;
+  if (!driver) return;
+  if (driver.online_status === 'BUSY') { showToast('Anda sedang dalam order aktif', 'error'); return; }
+  const newStatus = driver.online_status === 'ONLINE' ? 'OFFLINE' : 'ONLINE';
+  const ok = await showConfirm({
+    icon: newStatus==='ONLINE'?'🟢':'🔴',
+    title: newStatus==='ONLINE'?'Aktifkan Online?':'Matikan Online?',
+    message: newStatus==='ONLINE'?'Anda akan mulai menerima order.':'Tidak akan menerima order sementara.',
+    confirmText:'Ya', confirmColor: newStatus==='ONLINE'?'green':'red'
+  });
+  if (!ok) return;
+  await APP.supabase.from('drivers').update({ online_status: newStatus }).eq('id', driver.id);
+  driver.online_status = newStatus;
+  updateDrvStatusUI(newStatus);
+  showToast(newStatus==='ONLINE'?'✅ Online':'⏸️ Offline', 'success');
+  loadDriverHome();
+}
+
+async function drvUpdateStatus(orderId, newStatus) {
+  const messages = {
+    'DITERIMA DRIVER':'Terima order ini?',
+    'MENUJU PICKUP':'Konfirmasi sedang menuju pickup?',
+    'SAMPAI PICKUP':'Konfirmasi sudah sampai pickup?',
+    'DIAMBIL':'Barang/penumpang sudah diambil?',
+    'MENUJU TUJUAN':'Konfirmasi sedang menuju tujuan?',
+    'SELESAI':'Selesaikan order ini?'
+  };
+  const ok = await showConfirm({
+    icon:'❓', title:'Konfirmasi', message: messages[newStatus] || 'Lanjutkan?',
+    confirmText:'Ya', confirmColor: newStatus==='SELESAI'?'green':'primary'
+  });
+  if (!ok) return;
+  try {
+    const { error } = await APP.supabase.from('orders')
+      .update({ status:newStatus, updated_at:new Date().toISOString() }).eq('id', orderId);
+    if (error) throw error;
+    await APP.supabase.from('order_status_history').insert({
+      order_id: orderId, status:newStatus, changed_by:APP.user.id, note:`Driver update: ${newStatus}`
+    });
+
+    const driver = APP.data.driver;
+    if (newStatus === 'SELESAI') {
+      await APP.supabase.from('drivers').update({ online_status:'ONLINE', total_orders:(driver.total_orders||0)+1 }).eq('id', driver.id);
+      driver.online_status = 'ONLINE'; driver.total_orders = (driver.total_orders||0)+1;
+      updateDrvStatusUI('ONLINE');
+    } else if (['DITERIMA DRIVER','MENUJU PICKUP','SAMPAI PICKUP','DIAMBIL','MENUJU TUJUAN'].includes(newStatus)) {
+      await APP.supabase.from('drivers').update({ online_status:'BUSY' }).eq('id', driver.id);
+      driver.online_status = 'BUSY';
+      updateDrvStatusUI('BUSY');
+    }
+
+    showToast('✅ Status: ' + newStatus, 'success');
+    await loadDriverHome();
+    await loadDriverWallet();
+  } catch (err) { showToast('Gagal: ' + err.message, 'error'); }
+}
+
+async function drvOpenOrderDetail(orderId) {
+  const { data: order } = await APP.supabase.from('orders').select('*').eq('id', orderId).single();
+  if (!order) return;
+  let customer = null;
+  if (order.customer_id) {
+    const { data: c } = await APP.supabase.from('profiles').select('name, phone').eq('id', order.customer_id).maybeSingle();
+    customer = c;
+  }
+  openGlobalModal(`
+    <h3>${getServiceIcon(order.service_type)} ${order.order_code}</h3>
+    <div class="field"><label>Status</label><div><span class="badge" style="background:${getStatusColor(order.status)};">${order.status}</span></div></div>
+    ${customer ? `
+      <div class="field">
+        <label>Customer</label>
+        <div style="background:#F8FAFC;padding:10px 12px;border-radius:10px;">
+          <strong>${escapeHtml(customer.name || '-')}</strong><br>
+          ${customer.phone ? `<a href="tel:${customer.phone}" style="color:var(--primary);text-decoration:none;">📞 ${customer.phone}</a>` : ''}
+        </div>
+      </div>` : ''}
+    <div class="field"><label>Pickup</label><div>📍 ${escapeHtml(order.pickup_address || '-')}</div></div>
+    <div class="field"><label>Tujuan</label><div>🎯 ${escapeHtml(order.destination_address || '-')}</div></div>
+    ${order.customer_note ? `<div class="field"><label>Catatan</label><div>${escapeHtml(order.customer_note)}</div></div>` : ''}
+    <div class="field"><label>Pendapatan Anda</label>
+      <div style="background:#F0FDF4;padding:12px;border-radius:10px;border:1.5px solid #BBF7D0;">
+        <div style="font-size:22px;font-weight:800;color:var(--green);">
+          Rp ${Number(order.driver_earnings || order.delivery_fee || 0).toLocaleString('id-ID')}
+        </div>
+      </div>
+    </div>
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closeGlobalModal()">Tutup</button>
+      <button class="btn btn-primary" onclick="drvOpenNavigation('${order.id}')">🗺️ Navigasi</button>
+    </div>
+  `);
+}
+
+function drvOpenNavigation(orderId) {
+  APP.supabase.from('orders').select('*').eq('id', orderId).single().then(({ data: order }) => {
+    if (!order) return;
+    const goToPickup = ['DITUGASKAN','DITERIMA DRIVER','MENUJU PICKUP'].includes(order.status);
+    const addr = goToPickup ? order.pickup_address : order.destination_address;
+    const lat = goToPickup ? order.pickup_lat : order.destination_lat;
+    const lng = goToPickup ? order.pickup_lng : order.destination_lng;
+    const label = goToPickup ? 'Pickup' : 'Tujuan';
+
+    openGlobalModal(`
+      <h3>🗺️ Navigasi ke ${label}</h3>
+      <div style="background:#F8FAFC;padding:12px;border-radius:12px;margin-bottom:14px;font-size:13px;">
+        🎯 ${escapeHtml(addr || '-')}
+      </div>
+      <button class="btn btn-primary" style="margin-bottom:8px;" onclick="launchNavigation('${lat || ''}','${lng || ''}','${encodeURIComponent(addr || '')}', 'google')">🗺️ Google Maps</button>
+      <button class="btn btn-primary" style="margin-bottom:8px;background:#1565C0;" onclick="launchNavigation('${lat || ''}','${lng || ''}','${encodeURIComponent(addr || '')}', 'waze')">🚗 Waze</button>
+      <button class="btn btn-ghost" onclick="copyAddr('${encodeURIComponent(addr || '')}')">📋 Copy Alamat</button>
+      <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Tutup</button>
+    `);
+  });
+}
+
+function launchNavigation(lat, lng, addrEnc, app) {
+  const addr = decodeURIComponent(addrEnc || '');
+  let url = '';
+  if (lat && lng) {
+    if (app === 'google') url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving&dir_action=navigate`;
+    else if (app === 'waze') url = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes&zoom=17`;
+  } else if (addr) {
+    if (app === 'google') url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=driving`;
+    else if (app === 'waze') url = `https://waze.com/ul?q=${encodeURIComponent(addr)}&navigate=yes`;
+  }
+  if (url) window.open(url, '_blank');
+  else showToast('Alamat tidak tersedia', 'error');
+}
+
+function copyAddr(addrEnc) {
+  const addr = decodeURIComponent(addrEnc || '');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(addr).then(() => showToast('✅ Alamat disalin', 'success'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = addr; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('✅ Alamat disalin', 'success');
+  }
+  closeGlobalModal();
+}
+
+function drvChatCustomer(phone, orderCode) {
+  const clean = normalizePhone(phone);
+  const msg = `Halo, saya driver Andalan Express untuk order ${orderCode}.`;
+  window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+async function switchDrvTab(tab) {
+  document.querySelectorAll('#app .nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+  document.querySelectorAll('#app .page').forEach(p => p.classList.remove('active'));
+  document.getElementById('drv-page-' + tab)?.classList.add('active');
+  window.scrollTo({ top:0, behavior:'smooth' });
+  if (tab === 'history') await loadDrvHistory();
+  if (tab === 'income') await loadDrvIncome();
+}
+
+async function loadDrvHistory() {
+  const c = document.getElementById('drvHistoryContainer');
+  c.innerHTML = '<div class="skeleton"></div>';
+  const driver = APP.data.driver;
+  if (!driver) return;
+  const { data } = await APP.supabase.from('orders').select('*')
+    .eq('driver_id', driver.id).in('status', ['SELESAI','DIBATALKAN'])
+    .order('updated_at', { ascending:false }).limit(50);
+  if (!data || !data.length) { c.innerHTML = '<div class="empty"><span class="icon">📭</span>Belum ada riwayat</div>'; return; }
+  c.innerHTML = data.map(o => `
+    <div class="card" style="border-left:4px solid ${o.status === 'SELESAI' ? 'var(--green)' : 'var(--red)'};">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <strong>${o.order_code}</strong>
+        <span class="badge" style="background:${o.status === 'SELESAI' ? 'var(--green)' : 'var(--red)'};">${o.status}</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.5;">
+        📍 ${escapeHtml(o.pickup_address || '-')}<br>
+        🎯 ${escapeHtml(o.destination_address || '-')}
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;">
+        <span class="price">Rp ${Number(o.driver_earnings || o.delivery_fee || 0).toLocaleString('id-ID')}</span>
+        <span style="font-size:11px;color:var(--muted);">${formatDate(o.updated_at)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadDrvIncome() {
+  const c = document.getElementById('drvIncomeList');
+  c.innerHTML = '<div class="skeleton"></div>';
+  const driver = APP.data.driver;
+  if (!driver) return;
+
+  const stats30 = await getWalletStats(APP.user.id, 30);
+  const balEl = document.getElementById('drvIncomeBalance');
+  if (balEl) balEl.innerText = 'Rp ' + Number(stats30.wallet?.balance || 0).toLocaleString('id-ID');
+  const totEl = document.getElementById('drvIncomeTotal');
+  if (totEl) totEl.innerText = 'Rp ' + Number(stats30.wallet?.total_earned || 0).toLocaleString('id-ID');
+  renderDailyChart('drvChart30d', stats30.daily, '#16A34A');
+
+  const wtc = document.getElementById('drvWalletTx');
+  if (stats30.wallet) {
+    const { data: txs } = await APP.supabase.from('wallet_transactions')
+      .select('*').eq('wallet_id', stats30.wallet.id)
+      .order('created_at', { ascending:false }).limit(15);
+    if (!txs || !txs.length) {
+      wtc.innerHTML = '<div class="empty" style="padding:16px;">Belum ada mutasi</div>';
+    } else {
+      wtc.innerHTML = txs.map(t => `
+        <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:12px;">
+          <div>
+            <div style="font-size:12px;font-weight:600;">${escapeHtml(t.description || '-')}</div>
+            <div style="font-size:10.5px;color:var(--muted);">${formatDate(t.created_at)}</div>
+          </div>
+          <div style="font-weight:700;color:${t.amount > 0 ? 'var(--green)' : 'var(--red)'};font-size:13px;">
+            ${t.amount > 0 ? '+' : ''}Rp ${Number(t.amount).toLocaleString('id-ID')}
+          </div>
+        </div>
+      `).join('');
+    }
+  } else {
+    wtc.innerHTML = '<div class="empty" style="padding:16px;">Wallet belum aktif</div>';
+  }
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const { data } = await APP.supabase.from('orders').select('*')
+    .eq('driver_id', driver.id).eq('status','SELESAI')
+    .gte('updated_at', today.toISOString()).order('updated_at', { ascending:false });
+  const list = data || [];
+  if (!list.length) {
+    c.innerHTML = '<div class="empty"><span class="icon">💰</span>Belum ada order selesai hari ini</div>';
+  } else {
+    c.innerHTML = list.map(o => `
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-weight:700;font-size:12px;">${o.order_code}</div>
+          <div style="font-size:11px;color:var(--muted);">${formatTime(o.updated_at)} · ${o.service_type?.toUpperCase()}</div>
+        </div>
+        <div style="font-weight:700;color:var(--green);font-size:14px;">+Rp ${Number(o.driver_earnings || o.delivery_fee || 0).toLocaleString('id-ID')}</div>
+      </div>
+    `).join('');
+  }
+}
+
+function drvWhatsAppAdmin() {
+  const phone = APP.config.admin_phone || ADMIN_PHONE_FALLBACK;
+  const msg = `Halo Admin, saya ${APP.profile?.name || 'Driver'}.`;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function drvRefreshLocation() {
+  if (!navigator.geolocation) { showToast('GPS tidak didukung', 'error'); return; }
+  showToast('Mengambil lokasi...');
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      const driver = APP.data.driver;
+      if (driver) {
+        await APP.supabase.from('drivers').update({ current_lat: latitude, current_lng: longitude }).eq('id', driver.id);
+      }
+      showToast('✅ Lokasi diperbarui', 'success');
+    },
+    (err) => showToast('Gagal: ' + err.message, 'error'),
+    { enableHighAccuracy:true }
+  );
+}
+
+function startDriverLocationTracking() {
+  if (!navigator.geolocation) return;
+  let lastUpdate = 0;
+  const MIN_INTERVAL = 30000;
+  window.__drvWatchId = navigator.geolocation.watchPosition(
+    async (pos) => {
+      if (Date.now() - lastUpdate < MIN_INTERVAL) return;
+      lastUpdate = Date.now();
+      const { latitude, longitude } = pos.coords;
+      const driver = APP.data.driver;
+      if (driver) await APP.supabase.from('drivers').update({ current_lat:latitude, current_lng:longitude }).eq('id', driver.id);
+    },
+    () => {},
+    { enableHighAccuracy:false, maximumAge:60000, timeout:15000 }
+  );
+}
+
+async function drvLogout() {
+  const ok = await showConfirm({ icon:'🚪', title:'Keluar?', message:'Anda akan keluar.', confirmText:'Ya', confirmColor:'red' });
+  if (!ok) return;
+  const driver = APP.data.driver;
+  if (driver && driver.online_status !== 'BUSY') {
+    await APP.supabase.from('drivers').update({ online_status:'OFFLINE' }).eq('id', driver.id);
+  }
+  if (window.__drvWatchId) navigator.geolocation.clearWatch(window.__drvWatchId);
+  await APP.supabase.auth.signOut();
+  window.location.reload();
+}
+
+/* ================================================================
+   MITRA VIEW
+   ================================================================ */
+async function renderMitraView(root) {
+  root.innerHTML = `
+    <div class="container">
+      <div class="page active" id="mitra-page-home">
+        <div class="header" style="background:linear-gradient(135deg,#16A34A,#22C55E);">
+          <div>
+            <h1>ANDALAN EXPRESS</h1>
+            <div class="name" id="mitraStoreName">${escapeHtml(APP.profile?.name || 'Mitra')}</div>
+            <div class="sub" id="mitraStoreHours">--:-- - --:--</div>
+          </div>
+          <button class="online-toggle" onclick="mitraToggleStore()">
+            <span class="dot-status" id="mitraStoreDot"></span>
+            <span id="mitraStoreStatus">TUTUP</span>
+          </button>
+        </div>
+
+        <div class="wallet-hero green">
+          <div class="lbl">💰 Saldo Aktif</div>
+          <div class="val" id="mitraBalance">Rp 0</div>
+          <div class="meta">
+            <span>📈 Total: <strong id="mitraTotalEarned">Rp 0</strong></span>
+            <span>💵 Hari ini: <strong id="mitraTodayEarn">Rp 0</strong></span>
+          </div>
+        </div>
+
+        <div class="mitra-hero">
+          <div class="lbl">💰 Pendapatan Hari Ini</div>
+          <div class="val" id="mitraRevenue">Rp 0</div>
+          <div style="font-size:11.5px;opacity:.78;" id="mitraRevenueMeta">0 order selesai</div>
+          <div class="mitra-hero-row">
+            <div class="mitra-hero-stat"><div class="lbl">Selesai</div><div class="val" id="mitraStatDone">0</div></div>
+            <div class="mitra-hero-stat"><div class="lbl">Diproses</div><div class="val" id="mitraStatProc">0</div></div>
+            <div class="mitra-hero-stat"><div class="lbl">Siap</div><div class="val" id="mitraStatReady">0</div></div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:20px;">
+          <h2>📊 Performa 7 Hari</h2>
+          <div class="chart-card">
+            <div style="height:180px;position:relative;"><canvas id="mitraChart7d"></canvas></div>
+            <div class="chart-stats">
+              <div class="item">
+                <div class="lbl">Rata-rata</div>
+                <div class="val" style="color:var(--primary);" id="mitraAvgDaily">Rp 0</div>
+              </div>
+              <div class="item">
+                <div class="lbl">Total 7 Hari</div>
+                <div class="val" style="color:var(--green);" id="mitraTotal7d">Rp 0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:20px;">
+          <h2>🔔 Order Baru <span class="badge" id="mitraNewCount" style="background:var(--orange);display:none;">0</span></h2>
+          <div id="mitraNewOrders"><div class="skeleton"></div></div>
+        </div>
+      </div>
+
+      <div class="page" id="mitra-page-menu">
+        <div class="header" style="background:linear-gradient(135deg,#16A34A,#22C55E);">
+          <div><h1>ANDALAN EXPRESS</h1><div class="name">Menu</div><div class="sub" id="mitraMenuSub">0 item</div></div>
+        </div>
+        <div class="filter-chips" style="padding-top:16px;">
+          <button class="chip active" data-mf="ALL" onclick="setMitraMenuFilter('ALL')">Semua <span class="count" id="mmc-all">0</span></button>
+          <button class="chip" data-mf="Makanan" onclick="setMitraMenuFilter('Makanan')">🍛 Makanan <span class="count" id="mmc-makanan">0</span></button>
+          <button class="chip" data-mf="Minuman" onclick="setMitraMenuFilter('Minuman')">🥤 Minuman <span class="count" id="mmc-minuman">0</span></button>
+          <button class="chip" data-mf="Cemilan" onclick="setMitraMenuFilter('Cemilan')">🍿 Cemilan <span class="count" id="mmc-cemilan">0</span></button>
+        </div>
+        <div style="padding:0 16px;" id="mitraMenuList"><div class="skeleton"></div></div>
+        <div style="padding:16px;">
+          <button class="btn btn-green" onclick="openMitraAddMenu()">+ Tambah Menu</button>
+        </div>
+      </div>
+
+      <div class="page" id="mitra-page-orders">
+        <div class="header" style="background:linear-gradient(135deg,#16A34A,#22C55E);">
+          <div><h1>ANDALAN EXPRESS</h1><div class="name">Pesanan</div><div class="sub" id="mitraOrderSub">0 pesanan</div></div>
+        </div>
+        <div class="filter-chips" style="padding-top:16px;">
+          <button class="chip active" data-of="ALL" onclick="setMitraOrderFilter('ALL')">Semua <span class="count" id="moc-all">0</span></button>
+          <button class="chip" data-of="NEW" onclick="setMitraOrderFilter('NEW')">🔔 Baru <span class="count" id="moc-new">0</span></button>
+          <button class="chip" data-of="PROCESSING" onclick="setMitraOrderFilter('PROCESSING')">🔄 Diproses <span class="count" id="moc-proc">0</span></button>
+          <button class="chip" data-of="READY" onclick="setMitraOrderFilter('READY')">📦 Siap <span class="count" id="moc-ready">0</span></button>
+          <button class="chip" data-of="DONE" onclick="setMitraOrderFilter('DONE')">✅ Selesai <span class="count" id="moc-done">0</span></button>
+        </div>
+        <div style="padding:0 16px;" id="mitraOrderList"><div class="skeleton"></div></div>
+      </div>
+
+      <div class="page" id="mitra-page-profile">
+        <div class="header" style="background:linear-gradient(135deg,#16A34A,#22C55E);">
+          <div><h1>ANDALAN EXPRESS</h1><div class="name">Pengaturan</div><div class="sub">Kelola info usaha</div></div>
+        </div>
+
+        <div class="section" style="margin-top:16px;">
+          <h2>📊 Chart 30 Hari</h2>
+          <div class="chart-card">
+            <div style="height:180px;position:relative;"><canvas id="mitraChart30d"></canvas></div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:20px;">
+          <h2>💳 Mutasi Saldo Terbaru</h2>
+          <div id="mitraWalletTx"><div class="skeleton"></div></div>
+        </div>
+
+        <div style="background:white;padding:24px 20px;text-align:center;border-radius:20px;margin:16px;box-shadow:var(--shadow);">
+          <div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#16A34A,#22C55E);color:white;font-size:32px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+            ${escapeHtml((APP.profile?.name || 'M').charAt(0).toUpperCase())}
+          </div>
+          <h2 style="font-size:18px;" id="mitraProfileName">${escapeHtml(APP.profile?.name || 'Mitra')}</h2>
+          <p style="font-size:13px;color:var(--muted);" id="mitraProfileAddr">-</p>
+          <p style="margin-top:6px;"><span class="badge" id="mitraProfileBadge" style="background:#94A3B8;">TUTUP</span></p>
+        </div>
+
+        <div class="card" style="padding:0;margin:0 16px;overflow:hidden;">
+          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="openMitraEditStore()">
+            <span>🏪</span><span>Edit Info Toko</span>
+          </div>
+          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="openMitraEditHours()">
+            <span>🕒</span><span>Jam Operasional</span>
+          </div>
+          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="mitraWhatsAppAdmin()">
+            <span>💬</span><span>Hubungi Admin</span>
+          </div>
+          <div style="padding:16px;cursor:pointer;color:var(--red);display:flex;gap:12px;" onclick="mitraLogout()">
+            <span>🚪</span><span style="color:var(--red);">Keluar</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item active" data-tab="home" onclick="switchMitraTab('home')"><span class="icon">🏠</span>Beranda</div>
+        <div class="nav-item" data-tab="menu" onclick="switchMitraTab('menu')"><span class="icon">🍽️</span>Menu</div>
+        <div class="nav-item" data-tab="orders" onclick="switchMitraTab('orders')"><span class="icon">📋</span>Pesanan</div>
+        <div class="nav-item" data-tab="profile" onclick="switchMitraTab('profile')"><span class="icon">⚙️</span>Pengaturan</div>
+      </div>
+    </div>
+  `;
+
+  await loadMitraProfile();
+  await loadMitraHome();
+  await loadMitraWallet();
+  await loadMitraMenus();
+  await loadMitraOrders();
+  subscribeMitraRealtime();
+  return () => {};
+}
+
+async function loadMitraProfile() {
+  const { data: partner } = await APP.supabase.from('partners').select('*').eq('profile_id', APP.user.id).maybeSingle();
+  if (!partner) { showToast('Data mitra belum dibuat', 'error'); return; }
+  APP.data.partner = partner;
+  document.getElementById('mitraStoreName').innerText = partner.business_name || 'Mitra';
+  document.getElementById('mitraStoreHours').innerText = (partner.opening_time && partner.closing_time) ? `${partner.opening_time.slice(0,5)} - ${partner.closing_time.slice(0,5)}` : '--:-- - --:--';
+  document.getElementById('mitraProfileName').innerText = partner.business_name || 'Mitra';
+  document.getElementById('mitraProfileAddr').innerText = '📍 ' + (partner.address || '-');
+  updateMitraStatusUI(partner.status);
+}
+
+function updateMitraStatusUI(status) {
+  const dot = document.getElementById('mitraStoreDot');
+  const txt = document.getElementById('mitraStoreStatus');
+  const badge = document.getElementById('mitraProfileBadge');
+  if (!dot) return;
+  if (status === 'OPEN') {
+    dot.classList.add('online'); txt.innerText = 'BUKA';
+    if (badge) { badge.style.background = 'var(--green)'; badge.innerText = 'BUKA'; }
+  } else {
+    dot.classList.remove('online'); txt.innerText = 'TUTUP';
+    if (badge) { badge.style.background = '#94A3B8'; badge.innerText = 'TUTUP'; }
+  }
+}
+
+async function mitraToggleStore() {
+  const partner = APP.data.partner;
+  if (!partner) return;
+  const newStatus = partner.status === 'OPEN' ? 'CLOSED' : 'OPEN';
+  const ok = await showConfirm({
+    icon: newStatus === 'OPEN' ? '🟢' : '🔴',
+    title: newStatus === 'OPEN' ? 'Buka Toko?' : 'Tutup Toko?',
+    message: newStatus === 'OPEN' ? 'Toko mulai menerima pesanan.' : 'Tidak akan menerima order sementara.',
+    confirmText: 'Ya', confirmColor: newStatus === 'OPEN' ? 'green' : 'red'
+  });
+  if (!ok) return;
+  await APP.supabase.from('partners').update({ status: newStatus }).eq('id', partner.id);
+  partner.status = newStatus;
+  updateMitraStatusUI(newStatus);
+  showToast(newStatus === 'OPEN' ? '✅ Toko Buka' : '🔴 Toko Tutup', 'success');
+}
+
+async function loadMitraHome() {
+  const partner = APP.data.partner;
+  if (!partner) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const { data } = await APP.supabase.from('orders').select('*')
+    .eq('partner_id', partner.id).gte('created_at', today.toISOString());
+  const list = data || [];
+  const done = list.filter(o => o.status === 'SELESAI');
+  const proc = list.filter(o => o.status === 'DIPROSES');
+  const ready = list.filter(o => o.status === 'SIAP DIAMBIL');
+  const newOrders = list.filter(o => o.status === 'MENUNGGU');
+
+  document.getElementById('mitraStatDone').innerText = done.length;
+  document.getElementById('mitraStatProc').innerText = proc.length;
+  document.getElementById('mitraStatReady').innerText = ready.length;
+  const revenue = done.reduce((s,o) => s + Number(o.mitra_earnings || 0), 0);
+  document.getElementById('mitraRevenue').innerText = 'Rp ' + revenue.toLocaleString('id-ID');
+  document.getElementById('mitraRevenueMeta').innerText = done.length + ' order selesai';
+
+  const c = document.getElementById('mitraNewOrders');
+  const cnt = document.getElementById('mitraNewCount');
+  if (!newOrders.length) {
+    c.innerHTML = '<div class="empty"><span class="icon">✨</span>Belum ada order baru</div>';
+    if (cnt) cnt.style.display = 'none';
+  } else {
+    if (cnt) { cnt.innerText = newOrders.length; cnt.style.display = 'inline-block'; }
+    c.innerHTML = newOrders.map(o => renderMitraOrderCard(o, true)).join('');
+  }
+}
+
+async function loadMitraWallet() {
+  if (!APP.user) return;
+  const stats7 = await getWalletStats(APP.user.id, 7);
+  
+  const balEl = document.getElementById('mitraBalance');
+  if (balEl) balEl.innerText = 'Rp ' + Number(stats7.wallet?.balance || 0).toLocaleString('id-ID');
+  const totEl = document.getElementById('mitraTotalEarned');
+  if (totEl) totEl.innerText = 'Rp ' + Number(stats7.wallet?.total_earned || 0).toLocaleString('id-ID');
+
+  const todayKey = new Date().toISOString().slice(0,10);
+  const todayAmt = stats7.daily.find(d => d.day === todayKey)?.amount || 0;
+  const todayEl = document.getElementById('mitraTodayEarn');
+  if (todayEl) todayEl.innerText = 'Rp ' + todayAmt.toLocaleString('id-ID');
+
+  renderDailyChart('mitraChart7d', stats7.daily, '#16A34A');
+
+  const avgEl = document.getElementById('mitraAvgDaily');
+  if (avgEl) avgEl.innerText = 'Rp ' + Math.round(stats7.avg).toLocaleString('id-ID');
+  const tot7El = document.getElementById('mitraTotal7d');
+  if (tot7El) tot7El.innerText = 'Rp ' + Math.round(stats7.total).toLocaleString('id-ID');
+
+  const stats30 = await getWalletStats(APP.user.id, 30);
+  renderDailyChart('mitraChart30d', stats30.daily, '#16A34A');
+
+  const wtc = document.getElementById('mitraWalletTx');
+  if (stats30.wallet && wtc) {
+    const { data: txs } = await APP.supabase.from('wallet_transactions')
+      .select('*').eq('wallet_id', stats30.wallet.id)
+      .order('created_at', { ascending:false }).limit(15);
+    if (!txs || !txs.length) {
+      wtc.innerHTML = '<div class="empty" style="padding:16px;">Belum ada mutasi</div>';
+    } else {
+      wtc.innerHTML = txs.map(t => `
+        <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:12px;">
+          <div>
+            <div style="font-size:12px;font-weight:600;">${escapeHtml(t.description || '-')}</div>
+            <div style="font-size:10.5px;color:var(--muted);">${formatDate(t.created_at)}</div>
+          </div>
+          <div style="font-weight:700;color:${t.amount > 0 ? 'var(--green)' : 'var(--red)'};font-size:13px;">
+            ${t.amount > 0 ? '+' : ''}Rp ${Number(t.amount).toLocaleString('id-ID')}
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+async function loadMitraMenus() {
+  const partner = APP.data.partner;
+  if (!partner) return;
+  const { data } = await APP.supabase.from('menus').select('*').eq('partner_id', partner.id).order('category').order('name');
+  APP.data.menus = data || [];
+  updateMitraMenuCounts();
+  renderMitraMenus();
+}
+
+function updateMitraMenuCounts() {
+  const menus = APP.data.menus || [];
+  const counts = { ALL: menus.length, Makanan:0, Minuman:0, Cemilan:0 };
+  menus.forEach(m => { if (counts[m.category] !== undefined) counts[m.category]++; });
+  document.getElementById('mmc-all').innerText = counts.ALL;
+  document.getElementById('mmc-makanan').innerText = counts.Makanan;
+  document.getElementById('mmc-minuman').innerText = counts.Minuman;
+  document.getElementById('mmc-cemilan').innerText = counts.Cemilan;
+  const sub = document.getElementById('mitraMenuSub');
+  if (sub) sub.innerText = menus.length + ' item';
+}
+
+function setMitraMenuFilter(f) {
+  APP.filters.menu = f;
+  document.querySelectorAll('[data-mf]').forEach(el => el.classList.toggle('active', el.dataset.mf === f));
+  renderMitraMenus();
+}
+
+function renderMitraMenus() {
+  const c = document.getElementById('mitraMenuList');
+  const menus = APP.data.menus || [];
+  const filter = APP.filters.menu;
+  const filtered = filter === 'ALL' ? menus : menus.filter(m => m.category === filter);
+  if (!filtered.length) { c.innerHTML = '<div class="empty"><span class="icon">🍽️</span>Belum ada menu.<br>Klik tombol Tambah Menu.</div>'; return; }
+  c.innerHTML = filtered.map(m => {
+    const img = m.image_url ? `<img src="${m.image_url}" alt="">` : '🍽️';
+    return `
+      <div class="menu-item-card">
+        <div class="menu-img">${img}</div>
+        <div class="menu-info">
+          <div class="cat">${m.category || '-'}</div>
+          <div class="name">${escapeHtml(m.name)}</div>
+          <div class="price">Rp ${Number(m.price).toLocaleString('id-ID')}</div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn" onclick="openMitraEditMenu('${m.id}')">✏️</button>
+          <button class="icon-btn" style="background:#FEF2F2;" onclick="mitraDeleteMenu('${m.id}')">🗑️</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openMitraAddMenu() { openMitraMenuForm(null); }
+function openMitraEditMenu(id) { openMitraMenuForm(id); }
+
+function openMitraMenuForm(menuId) {
+  const menu = menuId ? (APP.data.menus || []).find(m => m.id === menuId) : null;
+  const partner = APP.data.partner;
+  if (!partner) return;
+  window.__menuEditId = menuId;
+  window.__selectedMenuFile = null;
+
+  openGlobalModal(`
+    <h3>${menu ? '✏️ Edit Menu' : '➕ Tambah Menu'}</h3>
+    <div class="field">
+      <label>Foto Menu (opsional)</label>
+      <div id="menuUploadArea" style="border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:#F8FAFC;" onclick="document.getElementById('menuImageInput').click()">
+        ${menu?.image_url ? `<div style="width:100%;height:140px;border-radius:10px;overflow:hidden;"><img src="${menu.image_url}" style="width:100%;height:100%;object-fit:cover;"></div>` : '<div style="font-size:36px;">📸</div><div style="font-size:13px;font-weight:700;margin-top:8px;">Tap untuk upload foto</div><div style="font-size:11px;color:var(--muted);margin-top:4px;">JPG/PNG max 2MB</div>'}
+      </div>
+      <input type="file" id="menuImageInput" accept="image/*" style="display:none;" onchange="handleMenuImageSelect(event)">
+    </div>
+    <div class="field">
+      <label>Kategori <span class="req">*</span></label>
+      <select id="menuFormCategory">
+        <option value="Makanan" ${menu?.category === 'Makanan' ? 'selected' : ''}>🍛 Makanan</option>
+        <option value="Minuman" ${menu?.category === 'Minuman' ? 'selected' : ''}>🥤 Minuman</option>
+        <option value="Cemilan" ${menu?.category === 'Cemilan' ? 'selected' : ''}>🍿 Cemilan</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Nama Menu <span class="req">*</span></label>
+      <input type="text" id="menuFormName" value="${escapeHtml(menu?.name || '')}" placeholder="Nasi Ayam Geprek">
+    </div>
+    <div class="field">
+      <label>Deskripsi (opsional)</label>
+      <textarea id="menuFormDesc" placeholder="Ayam crispy + sambal">${escapeHtml(menu?.description || '')}</textarea>
+    </div>
+    <div class="field">
+      <label>Harga (Rp) <span class="req">*</span></label>
+      <input type="number" id="menuFormPrice" value="${menu?.price || ''}" placeholder="15000" min="0">
+    </div>
+    <button class="btn btn-green" id="btnSaveMenu" onclick="saveMitraMenu()">💾 Simpan</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Batal</button>
+  `);
+}
+
+function handleMenuImageSelect(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('Foto max 2MB', 'error'); return; }
+  if (!file.type.startsWith('image/')) { showToast('File harus gambar', 'error'); return; }
+  window.__selectedMenuFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const area = document.getElementById('menuUploadArea');
+    if (area) area.innerHTML = `<div style="width:100%;height:140px;border-radius:10px;overflow:hidden;"><img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;"></div>`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveMitraMenu() {
+  const partner = APP.data.partner;
+  const btn = document.getElementById('btnSaveMenu');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span>Menyimpan...';
+  try {
+    const category = document.getElementById('menuFormCategory').value;
+    const name = document.getElementById('menuFormName').value.trim();
+    const description = document.getElementById('menuFormDesc').value.trim();
+    const price = parseInt(document.getElementById('menuFormPrice').value) || 0;
+    if (!name) throw new Error('Nama menu wajib');
+    if (price <= 0) throw new Error('Harga wajib');
+
+    let imageUrl = window.__menuEditId ? (APP.data.menus.find(m => m.id === window.__menuEditId)?.image_url || null) : null;
+
+    if (window.__selectedMenuFile) {
+      btn.innerHTML = '<span class="spinner-sm"></span>Upload foto...';
+      const ext = window.__selectedMenuFile.name.split('.').pop();
+      const fileName = `menu_${partner.id}_${Date.now()}.${ext}`;
+      const { data: up, error: upErr } = await APP.supabase.storage.from('menu-images').upload(fileName, window.__selectedMenuFile);
+      if (upErr) throw new Error('Upload gagal: ' + upErr.message);
+      const { data: urlData } = APP.supabase.storage.from('menu-images').getPublicUrl(up.path);
+      imageUrl = urlData.publicUrl;
+    }
+
+    const data = { partner_id: partner.id, category, name, description, price, image_url: imageUrl, is_available: true, updated_at: new Date().toISOString() };
+
+    if (window.__menuEditId) {
+      const { error } = await APP.supabase.from('menus').update(data).eq('id', window.__menuEditId);
+      if (error) throw error;
+      showToast('✅ Menu diperbarui', 'success');
+    } else {
+      const { error } = await APP.supabase.from('menus').insert([data]);
+      if (error) throw error;
+      showToast('✅ Menu ditambahkan', 'success');
+    }
+    closeGlobalModal();
+    await loadMitraMenus();
+  } catch (err) { showToast('Gagal: ' + err.message, 'error'); btn.disabled = false; btn.innerText = '💾 Simpan'; }
+}
+
+async function mitraDeleteMenu(id) {
+  const ok = await showConfirm({ icon:'🗑️', title:'Hapus Menu?', message:'Menu akan dihapus permanen.', confirmText:'Ya', confirmColor:'red' });
+  if (!ok) return;
+  await APP.supabase.from('menus').delete().eq('id', id);
+  showToast('✅ Menu dihapus', 'success');
+  await loadMitraMenus();
+}
+
+async function loadMitraOrders() {
+  const partner = APP.data.partner;
+  if (!partner) return;
+  const { data } = await APP.supabase.from('orders').select('*').eq('partner_id', partner.id).order('created_at', { ascending:false }).limit(100);
+  APP.data.orders = data || [];
+  updateMitraOrderCounts();
+  renderMitraOrders();
+  const sub = document.getElementById('mitraOrderSub');
+  if (sub) sub.innerText = (data || []).length + ' pesanan';
+}
+
+function updateMitraOrderCounts() {
+  const list = APP.data.orders || [];
+  const counts = { ALL:list.length, NEW:0, PROCESSING:0, READY:0, DONE:0 };
+  list.forEach(o => {
+    if (o.status === 'MENUNGGU') counts.NEW++;
+    if (o.status === 'DIPROSES') counts.PROCESSING++;
+    if (o.status === 'SIAP DIAMBIL') counts.READY++;
+    if (o.status === 'SELESAI') counts.DONE++;
+  });
+  document.getElementById('moc-all').innerText = counts.ALL;
+  document.getElementById('moc-new').innerText = counts.NEW;
+  document.getElementById('moc-proc').innerText = counts.PROCESSING;
+  document.getElementById('moc-ready').innerText = counts.READY;
+  document.getElementById('moc-done').innerText = counts.DONE;
+}
+
+function setMitraOrderFilter(f) {
+  APP.filters.order = f;
+  document.querySelectorAll('[data-of]').forEach(el => el.classList.toggle('active', el.dataset.of === f));
+  renderMitraOrders();
+}
+
+function renderMitraOrders() {
+  const c = document.getElementById('mitraOrderList');
+  const list = APP.data.orders || [];
+  let filtered = list;
+  const f = APP.filters.order;
+  if (f === 'NEW') filtered = list.filter(o => o.status === 'MENUNGGU');
+  else if (f === 'PROCESSING') filtered = list.filter(o => o.status === 'DIPROSES');
+  else if (f === 'READY') filtered = list.filter(o => o.status === 'SIAP DIAMBIL');
+  else if (f === 'DONE') filtered = list.filter(o => o.status === 'SELESAI');
+  if (!filtered.length) { c.innerHTML = '<div class="empty"><span class="icon">📭</span>Belum ada pesanan</div>'; return; }
+  c.innerHTML = filtered.map(o => renderMitraOrderCard(o)).join('');
+}
+
+function renderMitraOrderCard(o, showActions = false) {
+  const statusMap = { 'MENUNGGU':'Baru', 'DIPROSES':'Diproses', 'SIAP DIAMBIL':'Siap Diambil', 'SELESAI':'Selesai', 'DIBATALKAN':'Dibatalkan' };
+  let actionHtml = '';
+  if (o.status === 'MENUNGGU') {
+    actionHtml = `
+      <div class="btn-row">
+        <button class="btn btn-red btn-sm" onclick="event.stopPropagation();mitraRejectOrder('${o.id}')">❌ Tolak</button>
+        <button class="btn btn-green btn-sm" onclick="event.stopPropagation();mitraAcceptOrder('${o.id}')">✅ Terima</button>
+      </div>
+    `;
+  } else if (o.status === 'DIPROSES') {
+    actionHtml = `<button class="btn btn-orange btn-sm" style="margin-top:10px;" onclick="event.stopPropagation();mitraMarkReady('${o.id}')">📦 Tandai Siap Diambil</button>`;
+  }
+  return `
+    <div class="card" style="border-left:4px solid ${getStatusColor(o.status)};">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <strong>${o.order_code}</strong>
+        <span class="badge" style="background:${getStatusColor(o.status)};">${statusMap[o.status] || o.status}</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;">
+        🕐 ${formatTime(o.created_at)}<br>
+        🎯 ${escapeHtml(o.destination_address || '-')}
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;align-items:center;">
+        <span class="price">Rp ${Number(o.mitra_earnings || 0).toLocaleString('id-ID')}</span>
+      </div>
+      ${actionHtml}
+    </div>
+  `;
+}
+
+async function mitraAcceptOrder(orderId) {
+  const ok = await showConfirm({ icon:'✅', title:'Terima Order?', message:'Order akan mulai diproses.', confirmText:'Ya', confirmColor:'green' });
+  if (!ok) return;
+  try {
+    await APP.supabase.from('orders').update({ status:'DIPROSES', updated_at:new Date().toISOString() }).eq('id', orderId);
+    await APP.supabase.from('order_status_history').insert({ order_id:orderId, status:'DIPROSES', changed_by:APP.user.id, note:'Diterima mitra' });
+    showToast('✅ Order diterima', 'success');
+    await loadMitraOrders();
+    await loadMitraHome();
+  } catch (err) { showToast('Gagal: ' + err.message, 'error'); }
+}
+
+async function mitraRejectOrder(orderId) {
+  const ok = await showConfirm({ icon:'❌', title:'Tolak Order?', message:'Order akan dibatalkan.', confirmText:'Ya', confirmColor:'red' });
+  if (!ok) return;
+  try {
+    await APP.supabase.from('orders').update({ status:'DIBATALKAN', updated_at:new Date().toISOString() }).eq('id', orderId);
+    await APP.supabase.from('order_status_history').insert({ order_id:orderId, status:'DIBATALKAN', changed_by:APP.user.id, note:'Ditolak mitra' });
+    showToast('Order ditolak', 'success');
+    await loadMitraOrders();
+    await loadMitraHome();
+  } catch (err) { showToast('Gagal: ' + err.message, 'error'); }
+}
+
+async function mitraMarkReady(orderId) {
+  const ok = await showConfirm({ icon:'📦', title:'Siap Diambil?', message:'Konfirmasi makanan siap.', confirmText:'Ya', confirmColor:'green' });
+  if (!ok) return;
+  try {
+    await APP.supabase.from('orders').update({ status:'SIAP DIAMBIL', updated_at:new Date().toISOString() }).eq('id', orderId);
+    await APP.supabase.from('order_status_history').insert({ order_id:orderId, status:'SIAP DIAMBIL', changed_by:APP.user.id, note:'Siap diambil driver' });
+    showToast('✅ Siap diambil!', 'success');
+    await loadMitraOrders();
+    await loadMitraHome();
+  } catch (err) { showToast('Gagal: ' + err.message, 'error'); }
+}
+
+function openMitraEditStore() {
+  const p = APP.data.partner;
+  if (!p) return;
+  openGlobalModal(`
+    <h3>🏪 Edit Info Toko</h3>
+    <div class="field"><label>Nama Toko <span class="req">*</span></label><input type="text" id="storeFormName" value="${escapeHtml(p.business_name || '')}"></div>
+    <div class="field"><label>Alamat <span class="req">*</span></label><textarea id="storeFormAddr">${escapeHtml(p.address || '')}</textarea></div>
+    <div class="field"><label>Telepon Toko</label><input type="tel" id="storeFormPhone" value="${escapeHtml(p.phone || '')}"></div>
+    <button class="btn btn-green" onclick="saveMitraStoreInfo()">💾 Simpan</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Batal</button>
+  `);
+}
+
+async function saveMitraStoreInfo() {
+  const p = APP.data.partner;
+  const business_name = document.getElementById('storeFormName').value.trim();
+  const address = document.getElementById('storeFormAddr').value.trim();
+  const phone = document.getElementById('storeFormPhone').value.trim();
+  if (!business_name || !address) { showToast('Nama & alamat wajib', 'error'); return; }
+  await APP.supabase.from('partners').update({ business_name, address, phone, updated_at:new Date().toISOString() }).eq('id', p.id);
+  p.business_name = business_name; p.address = address; p.phone = phone;
+  document.getElementById('mitraStoreName').innerText = business_name;
+  document.getElementById('mitraProfileName').innerText = business_name;
+  document.getElementById('mitraProfileAddr').innerText = '📍 ' + address;
+  showToast('✅ Tersimpan', 'success');
+  closeGlobalModal();
+}
+
+function openMitraEditHours() {
+  const p = APP.data.partner;
+  if (!p) return;
+  openGlobalModal(`
+    <h3>🕒 Jam Operasional</h3>
+    <div class="field"><label>Jam Buka</label><input type="time" id="hoursOpen" value="${p.opening_time?.slice(0,5) || '08:00'}"></div>
+    <div class="field"><label>Jam Tutup</label><input type="time" id="hoursClose" value="${p.closing_time?.slice(0,5) || '22:00'}"></div>
+    <button class="btn btn-green" onclick="saveMitraHours()">💾 Simpan</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Batal</button>
+  `);
+}
+
+async function saveMitraHours() {
+  const p = APP.data.partner;
+  const opening_time = document.getElementById('hoursOpen').value;
+  const closing_time = document.getElementById('hoursClose').value;
+  await APP.supabase.from('partners').update({ opening_time, closing_time, updated_at:new Date().toISOString() }).eq('id', p.id);
+  p.opening_time = opening_time; p.closing_time = closing_time;
+  document.getElementById('mitraStoreHours').innerText = `${opening_time} - ${closing_time}`;
+  showToast('✅ Jam diperbarui', 'success');
+  closeGlobalModal();
+}
+
+function mitraWhatsAppAdmin() {
+  const phone = APP.config.admin_phone || ADMIN_PHONE_FALLBACK;
+  const msg = `Halo Admin, saya ${APP.data.partner?.business_name || 'Mitra'}.`;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+async function switchMitraTab(tab) {
+  document.querySelectorAll('#app .nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+  document.querySelectorAll('#app .page').forEach(p => p.classList.remove('active'));
+  document.getElementById('mitra-page-' + tab)?.classList.add('active');
+  window.scrollTo({ top:0, behavior:'smooth' });
+  if (tab === 'menu') await loadMitraMenus();
+  if (tab === 'orders') await loadMitraOrders();
+  if (tab === 'home') { await loadMitraHome(); await loadMitraWallet(); }
+}
+
+function subscribeMitraRealtime() {
+  const p = APP.data.partner;
+  if (!p) return;
+  APP.realtimeChannel = APP.supabase.channel('mitra-' + p.id)
+    .on('postgres_changes', { event:'*', schema:'public', table:'orders', filter:`partner_id=eq.${p.id}` },
+      (payload) => {
+        loadMitraHome(); loadMitraOrders(); loadMitraWallet();
+        if (payload.eventType === 'INSERT') { showToast('🔔 Order baru masuk!', 'success'); playBeep(); }
+      }
+    ).subscribe();
+}
+
+async function mitraLogout() {
+  const ok = await showConfirm({ icon:'🚪', title:'Keluar?', message:'Anda akan keluar.', confirmText:'Ya', confirmColor:'red' });
+  if (!ok) return;
+  await APP.supabase.auth.signOut();
+  window.location.reload();
+}
+
+/* ================================================================
+   ADMIN VIEW
+   ================================================================ */
+let admFilters = { status:'ALL', search:'' };
+let admDrivers = [];
+
+async function renderAdminView(root) {
+  root.innerHTML = `
+    <div class="container">
+      <div class="page active" id="adm-page-dashboard">
+        <div class="header">
+          <div>
+            <h1>ANDALAN CONTROL CENTER</h1>
+            <div class="name">${escapeHtml(APP.profile?.name || 'Admin')}</div>
+            <div class="sub">Dashboard Operasional</div>
+          </div>
+          <div style="background:rgba(255,255,255,.2);padding:6px 12px;border-radius:30px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#22C55E;"></span>LIVE
+          </div>
+        </div>
+
+        <div class="wallet-hero">
+          <div class="lbl">💰 Saldo Platform</div>
+          <div class="val" id="admBalance">Rp 0</div>
+          <div class="meta">
+            <span>📈 Total: <strong id="admTotalEarned">Rp 0</strong></span>
+            <span>💵 Hari ini: <strong id="admTodayEarn">Rp 0</strong></span>
+          </div>
+        </div>
+
+        <div class="admin-stat-grid">
+          <div class="admin-stat"><div class="lbl">📋 Order Hari Ini</div><div class="val" id="admStatTotal">0</div></div>
+          <div class="admin-stat orange"><div class="lbl">⏳ Menunggu</div><div class="val" id="admStatPending">0</div></div>
+          <div class="admin-stat green"><div class="lbl">✅ Selesai</div><div class="val" id="admStatDone">0</div></div>
+          <div class="admin-stat purple"><div class="lbl">🛵 Driver Online</div><div class="val" id="admStatDrivers">0</div></div>
+        </div>
+
+        <div class="section" style="margin-top:16px;">
+          <h2>📊 Performa 7 Hari</h2>
+          <div class="chart-card">
+            <div style="height:180px;position:relative;"><canvas id="admChart7d"></canvas></div>
+            <div class="chart-stats">
+              <div class="item">
+                <div class="lbl">Rata-rata</div>
+                <div class="val" style="color:var(--primary);" id="admAvgDaily">Rp 0</div>
+              </div>
+              <div class="item">
+                <div class="lbl">Total 7 Hari</div>
+                <div class="val" style="color:var(--green);" id="admTotal7d">Rp 0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:16px;">
+          <h2>📊 Per Layanan (7 Hari)</h2>
+          <div class="chart-card">
+            <div style="height:180px;position:relative;"><canvas id="admChartServices"></canvas></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>🚨 Butuh Tindakan</h2>
+          <div id="admUrgentOrders"><div class="skeleton" style="height:80px;"></div></div>
+        </div>
+
+        <div class="section" style="margin-bottom:20px;">
+          <h2>📊 Order Aktif Terbaru</h2>
+          <div id="admRecentActive"><div class="skeleton" style="height:80px;"></div></div>
+        </div>
+      </div>
+
+      <div class="page" id="adm-page-orders">
+        <div class="header">
+          <div><h1>ANDALAN EXPRESS</h1><div class="name">Semua Order</div><div class="sub">Kelola & assign driver</div></div>
+        </div>
+        <div class="search-bar" style="padding:16px 16px 12px;">
+          <input type="text" id="admSearch" placeholder="🔍 Cari kode / nama customer..." oninput="admSearchOrders(this.value)">
+        </div>
+        <div class="filter-chips">
+          <button class="chip active" data-af="ALL" onclick="setAdmFilter('ALL')">Semua <span class="count" id="afc-all">0</span></button>
+          <button class="chip" data-af="MENUNGGU" onclick="setAdmFilter('MENUNGGU')">⏳ <span class="count" id="afc-wait">0</span></button>
+          <button class="chip" data-af="DIPROSES" onclick="setAdmFilter('DIPROSES')">🔄 <span class="count" id="afc-proc">0</span></button>
+          <button class="chip" data-af="AKTIF" onclick="setAdmFilter('AKTIF')">🛵 <span class="count" id="afc-active">0</span></button>
+          <button class="chip" data-af="SELESAI" onclick="setAdmFilter('SELESAI')">✅ <span class="count" id="afc-done">0</span></button>
+          <button class="chip" data-af="DIBATALKAN" onclick="setAdmFilter('DIBATALKAN')">❌ <span class="count" id="afc-cancel">0</span></button>
+        </div>
+        <div style="padding:0 16px;" id="admOrdersList"><div class="skeleton"></div></div>
+      </div>
+
+      <div class="page" id="adm-page-drivers">
+        <div class="header">
+          <div><h1>ANDALAN EXPRESS</h1><div class="name">Driver</div><div class="sub">Monitoring driver</div></div>
+        </div>
+        <div style="padding:16px 16px 8px;">
+          <button class="btn btn-primary" onclick="admOpenAddDriver()">➕ Tambah Driver Baru</button>
+        </div>
+        <div class="section">
+          <div id="admDriversList"><div class="skeleton"></div></div>
+        </div>
+      </div>
+
+      <div class="page" id="adm-page-partners">
+        <div class="header">
+          <div><h1>ANDALAN EXPRESS</h1><div class="name">Mitra</div><div class="sub">Monitoring mitra kuliner</div></div>
+        </div>
+        <div style="padding:16px 16px 8px;">
+          <button class="btn btn-green" onclick="admOpenAddPartner()">➕ Tambah Mitra Baru</button>
+        </div>
+        <div class="section">
+          <div id="admPartnersList"><div class="skeleton"></div></div>
+        </div>
+      </div>
+
+      <div class="page" id="adm-page-menu">
+        <div class="header">
+          <div><h1>ANDALAN EXPRESS</h1><div class="name">Laporan & Pengaturan</div><div class="sub">Menu tambahan</div></div>
+        </div>
+        <div class="card" style="padding:0;margin:16px;overflow:hidden;">
+          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="admShowReport('today')">
+            <span>📊</span><span>Laporan Hari Ini</span>
+          </div>
+          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="admShowReport('week')">
+            <span>📈</span><span>Laporan 7 Hari</span>
+          </div>
+          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="admShowTransactions()">
+            <span>💰</span><span>Transaksi Terbaru</span>
+          </div>
+          <div style="padding:16px;cursor:pointer;color:var(--red);display:flex;gap:12px;" onclick="admLogout()">
+            <span>🚪</span><span style="color:var(--red);">Keluar</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item active" data-tab="dashboard" onclick="switchAdmTab('dashboard')"><span class="icon">📊</span>Dashboard</div>
+        <div class="nav-item" data-tab="orders" onclick="switchAdmTab('orders')"><span class="icon">📋</span>Order</div>
+        <div class="nav-item" data-tab="drivers" onclick="switchAdmTab('drivers')"><span class="icon">🛵</span>Driver</div>
+        <div class="nav-item" data-tab="partners" onclick="switchAdmTab('partners')"><span class="icon">🏪</span>Mitra</div>
+        <div class="nav-item" data-tab="menu" onclick="switchAdmTab('menu')"><span class="icon">☰</span>Menu</div>
+      </div>
+    </div>
+  `;
+
+  await loadAdmDashboard();
+  await loadAdmWallet();
+  await loadAdmOrders();
+  await loadAdmDrivers();
+  await loadAdmPartners();
+  subscribeAdmRealtime();
+  return () => {};
+}
+
+async function loadAdmWallet() {
+  if (!APP.user) return;
+  const stats7 = await getWalletStats(APP.user.id, 7);
+  
+  const balEl = document.getElementById('admBalance');
+  if (balEl) balEl.innerText = 'Rp ' + Number(stats7.wallet?.balance || 0).toLocaleString('id-ID');
+  const totEl = document.getElementById('admTotalEarned');
+  if (totEl) totEl.innerText = 'Rp ' + Number(stats7.wallet?.total_earned || 0).toLocaleString('id-ID');
+
+  const todayKey = new Date().toISOString().slice(0,10);
+  const todayAmt = stats7.daily.find(d => d.day === todayKey)?.amount || 0;
+  const todayEl = document.getElementById('admTodayEarn');
+  if (todayEl) todayEl.innerText = 'Rp ' + todayAmt.toLocaleString('id-ID');
+
+  renderDailyChart('admChart7d', stats7.daily, '#0B7CFF');
+
+  const avgEl = document.getElementById('admAvgDaily');
+  if (avgEl) avgEl.innerText = 'Rp ' + Math.round(stats7.avg).toLocaleString('id-ID');
+  const tot7El = document.getElementById('admTotal7d');
+  if (tot7El) tot7El.innerText = 'Rp ' + Math.round(stats7.total).toLocaleString('id-ID');
+
+  const since = new Date(); since.setDate(since.getDate() - 6); since.setHours(0,0,0,0);
+  const { data: ords } = await APP.supabase.from('orders')
+    .select('service_type, platform_earnings, status')
+    .gte('created_at', since.toISOString())
+    .eq('status', 'SELESAI');
+  const byService = { kurir:0, jastip:0, kuliner:0, ojek:0 };
+  (ords || []).forEach(o => {
+    if (byService[o.service_type] !== undefined) byService[o.service_type] += Number(o.platform_earnings || 0);
+  });
+  renderBarChart('admChartServices',
+    ['📦 Kurir', '🛍️ Jastip', '🍜 Kuliner', '🏍️ Ojek'],
+    [byService.kurir, byService.jastip, byService.kuliner, byService.ojek],
+    ['#0B7CFF', '#16A34A', '#F59E0B', '#8B5CF6']
+  );
+}
+
+async function loadAdmDashboard() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const { data: orders } = await APP.supabase.from('orders').select('*').gte('created_at', today.toISOString());
+  const list = orders || [];
+  const done = list.filter(o => o.status === 'SELESAI');
+  document.getElementById('admStatTotal').innerText = list.length;
+  document.getElementById('admStatPending').innerText = list.filter(o => o.status === 'MENUNGGU').length;
+  document.getElementById('admStatDone').innerText = done.length;
+
+  const { count } = await APP.supabase.from('drivers').select('*', { count:'exact', head:true }).eq('online_status','ONLINE');
+  document.getElementById('admStatDrivers').innerText = count || 0;
+
+  const { data: urgent } = await APP.supabase.from('orders').select('*').eq('status','MENUNGGU').order('created_at').limit(5);
+  await admEnrich(urgent || []);
+  renderAdmUrgent(urgent || []);
+
+  const { data: recent } = await APP.supabase.from('orders').select('*')
+    .in('status', ['DIPROSES','DITUGASKAN','DITERIMA DRIVER','MENUJU PICKUP','SAMPAI PICKUP','DIAMBIL','MENUJU TUJUAN'])
+    .order('updated_at', { ascending:false }).limit(3);
+  await admEnrich(recent || []);
+  renderAdmRecentActive(recent || []);
+}
+
+function renderAdmUrgent(orders) {
+  const c = document.getElementById('admUrgentOrders');
+  if (!orders.length) { c.innerHTML = '<div class="empty" style="padding:20px;"><span class="icon">✨</span>Semua order tertangani</div>'; return; }
+  c.innerHTML = orders.map(o => `
+    <div class="card" style="border-left:4px solid var(--red);">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <strong>${o.order_code}</strong>
+        <span class="badge" style="background:var(--red);">MENUNGGU</span>
+      </div>
+      <div style="font-size:12px;line-height:1.5;">
+        👤 ${escapeHtml(o.customer?.name || '-')}<br>
+        🎯 ${escapeHtml(o.destination_address || '-')}
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;">
+        <span class="price">Rp ${Number(o.total_price).toLocaleString('id-ID')}</span>
+        <span style="font-size:11px;color:var(--muted);">${formatTime(o.created_at)}</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-sm" onclick="admOpenAssign('${o.id}')">🛵 Pilih Driver</button>
+        <button class="btn btn-ghost btn-sm" onclick="admOpenOrderDetail('${o.id}')">Detail</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAdmRecentActive(orders) {
+  const c = document.getElementById('admRecentActive');
+  if (!orders.length) { c.innerHTML = '<div class="empty" style="padding:20px;"><span class="icon">📭</span>Belum ada order aktif</div>'; return; }
+  c.innerHTML = orders.map(o => `
+    <div class="card card-clickable" style="border-left:4px solid ${getStatusColor(o.status)};" onclick="admOpenOrderDetail('${o.id}')">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <strong>${o.order_code}</strong>
+        <span class="badge" style="background:${getStatusColor(o.status)};">${o.status}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;">
+        ${getServiceIcon(o.service_type)} ${o.service_type?.toUpperCase()}
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;">
+        <span class="price">Rp ${Number(o.total_price).toLocaleString('id-ID')}</span>
+        <span style="font-size:11px;color:var(--muted);">${formatTime(o.created_at)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadAdmOrders() {
+  const { data } = await APP.supabase.from('orders').select('*').order('created_at', { ascending:false }).limit(100);
+  APP.data.allOrders = data || [];
+  await admEnrich(APP.data.allOrders);
+  updateAdmFilterCounts();
+  renderAdmOrdersList();
+}
+
+async function admEnrich(orders) {
+  if (!orders.length) return;
+  const custIds = [...new Set(orders.map(o => o.customer_id).filter(Boolean))];
+  const driverIds = [...new Set(orders.map(o => o.driver_id).filter(Boolean))];
+  const partnerIds = [...new Set(orders.map(o => o.partner_id).filter(Boolean))];
+
+  let custMap = {}, driverMap = {}, partnerMap = {};
+  if (custIds.length) {
+    const { data } = await APP.supabase.from('profiles').select('id, name, phone').in('id', custIds);
+    (data||[]).forEach(p => custMap[p.id] = p);
+  }
+  if (driverIds.length) {
+    const { data: drivers } = await APP.supabase.from('drivers').select('id, vehicle_type, vehicle_number, rating, profile_id').in('id', driverIds);
+    if (drivers?.length) {
+      const pids = drivers.map(d => d.profile_id);
+      const { data: profs } = await APP.supabase.from('profiles').select('id, name, phone').in('id', pids);
+      const pMap = {};
+      (profs||[]).forEach(p => pMap[p.id] = p);
+      drivers.forEach(d => driverMap[d.id] = { ...d, profile: pMap[d.profile_id] });
+    }
+  }
+  if (partnerIds.length) {
+    const { data } = await APP.supabase.from('partners').select('id, business_name, phone, address').in('id', partnerIds);
+    (data||[]).forEach(p => partnerMap[p.id] = p);
+  }
+  orders.forEach(o => {
+    o.customer = custMap[o.customer_id] || null;
+    o.driver = driverMap[o.driver_id] || null;
+    o.partner = partnerMap[o.partner_id] || null;
+  });
+}
+
+function updateAdmFilterCounts() {
+  const list = APP.data.allOrders || [];
+  const counts = { ALL:list.length, MENUNGGU:0, DIPROSES:0, AKTIF:0, SELESAI:0, DIBATALKAN:0 };
+  const active = ['DITUGASKAN','DITERIMA DRIVER','MENUJU PICKUP','SAMPAI PICKUP','DIAMBIL','MENUJU TUJUAN'];
+  list.forEach(o => {
+    if (o.status === 'MENUNGGU') counts.MENUNGGU++;
+    else if (o.status === 'DIPROSES') counts.DIPROSES++;
+    else if (active.includes(o.status)) counts.AKTIF++;
+    else if (o.status === 'SELESAI') counts.SELESAI++;
+    else if (o.status === 'DIBATALKAN') counts.DIBATALKAN++;
+  });
+  document.getElementById('afc-all').innerText = counts.ALL;
+  document.getElementById('afc-wait').innerText = counts.MENUNGGU;
+  document.getElementById('afc-proc').innerText = counts.DIPROSES;
+  document.getElementById('afc-active').innerText = counts.AKTIF;
+  document.getElementById('afc-done').innerText = counts.SELESAI;
+  document.getElementById('afc-cancel').innerText = counts.DIBATALKAN;
+}
+
+function setAdmFilter(f) {
+  admFilters.status = f;
+  document.querySelectorAll('[data-af]').forEach(el => el.classList.toggle('active', el.dataset.af === f));
+  renderAdmOrdersList();
+}
+
+function admSearchOrders(val) {
+  admFilters.search = (val || '').toLowerCase().trim();
+  renderAdmOrdersList();
+}
+
+function renderAdmOrdersList() {
+  const c = document.getElementById('admOrdersList');
+  const list = APP.data.allOrders || [];
+  const f = admFilters.status, search = admFilters.search;
+  const active = ['DITUGASKAN','DITERIMA DRIVER','MENUJU PICKUP','SAMPAI PICKUP','DIAMBIL','MENUJU TUJUAN'];
+  const filtered = list.filter(o => {
+    if (f !== 'ALL') {
+      if (f === 'AKTIF' && !active.includes(o.status)) return false;
+      if (f !== 'AKTIF' && o.status !== f) return false;
+    }
+    if (search) {
+      const s = [o.order_code, o.customer?.name, o.customer?.phone].filter(Boolean).join(' ').toLowerCase();
+      if (!s.includes(search)) return false;
+    }
+    return true;
+  });
+  if (!filtered.length) { c.innerHTML = '<div class="empty" style="padding:40px;"><span class="icon">📭</span>Tidak ada order</div>'; return; }
+  c.innerHTML = filtered.map(o => renderAdmOrderCard(o)).join('');
+}
+
+function renderAdmOrderCard(o) {
+  return `
+    <div class="card" style="border-left:4px solid ${getStatusColor(o.status)};">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <strong>${o.order_code}</strong>
+        <span class="badge" style="background:${getStatusColor(o.status)};">${o.status}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">
+        ${getServiceIcon(o.service_type)} ${o.service_type?.toUpperCase()} · ${formatDate(o.created_at)}
+      </div>
+      ${o.driver ? `
+        <div style="background:#EFF6FF;padding:8px 10px;border-radius:10px;margin-bottom:8px;font-size:12px;display:flex;gap:8px;align-items:center;">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">
+            ${(o.driver.profile?.name || 'D').charAt(0).toUpperCase()}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;">${escapeHtml(o.driver.profile?.name || 'Driver')}</div>
+            <div style="font-size:10.5px;color:var(--muted);">${o.driver.vehicle_type || ''} · ⭐ ${Number(o.driver.rating||5).toFixed(1)}</div>
+          </div>
+        </div>` : ''}
+      <div style="background:#F8FAFC;padding:10px 12px;border-radius:10px;margin-bottom:8px;font-size:12px;">
+        <div>👤 ${escapeHtml(o.customer?.name || '-')}</div>
+        <div>📞 ${o.customer?.phone || '-'}</div>
+        <div>🎯 ${escapeHtml(o.destination_address || '-')}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <span class="price">Rp ${Number(o.total_price).toLocaleString('id-ID')}</span>
+        <span style="font-size:11px;color:var(--muted);">${formatTime(o.created_at)}</span>
+      </div>
+      <div class="btn-row">
+        ${['MENUNGGU','DIPROSES'].includes(o.status) ? `<button class="btn btn-primary btn-sm" onclick="admOpenAssign('${o.id}')">🛵 Pilih Driver</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="admOpenOrderDetail('${o.id}')">Detail</button>
+      </div>
+    </div>
+  `;
+}
+
+async function admOpenOrderDetail(orderId) {
+  const { data: order } = await APP.supabase.from('orders').select('*').eq('id', orderId).single();
+  if (!order) return;
+  let customer = null, driver = null, partner = null, items = [], history = [];
+  if (order.customer_id) {
+    const { data } = await APP.supabase.from('profiles').select('name, phone').eq('id', order.customer_id).maybeSingle();
+    customer = data;
+  }
+  if (order.driver_id) {
+    const { data: d } = await APP.supabase.from('drivers').select('*, profile:profile_id(name, phone)').eq('id', order.driver_id).maybeSingle();
+    driver = d;
+  }
+  if (order.partner_id) {
+    const { data } = await APP.supabase.from('partners').select('business_name, address, phone').eq('id', order.partner_id).maybeSingle();
+    partner = data;
+  }
+  if (order.service_type === 'kuliner') {
+    const { data } = await APP.supabase.from('order_items').select('*').eq('order_id', orderId);
+    items = data || [];
+  }
+  const { data: hist } = await APP.supabase.from('order_status_history').select('*').eq('order_id', orderId).order('created_at');
+  history = hist || [];
+
+  openGlobalModal(`
+    <h3>${getServiceIcon(order.service_type)} ${order.order_code}</h3>
+    <div class="field"><label>Status</label><div><span class="badge" style="background:${getStatusColor(order.status)};">${order.status}</span></div></div>
+    <div class="field"><label>Customer</label>
+      <div style="background:#F8FAFC;padding:10px 12px;border-radius:10px;">
+        <strong>${escapeHtml(customer?.name || '-')}</strong><br>
+        ${customer?.phone ? `<a href="tel:${customer.phone}" style="color:var(--primary);text-decoration:none;">📞 ${customer.phone}</a>` : ''}
+      </div>
+    </div>
+    ${driver ? `
+      <div class="field"><label>Driver</label>
+        <div style="background:#EFF6FF;padding:10px 12px;border-radius:10px;">
+          <strong>${escapeHtml(driver.profile?.name || '-')}</strong><br>
+          ${driver.vehicle_type || ''} · ${driver.vehicle_number || ''} · ⭐ ${Number(driver.rating||5).toFixed(1)}<br>
+          ${driver.profile?.phone ? `<a href="tel:${driver.profile.phone}" style="color:var(--primary);text-decoration:none;">📞 ${driver.profile.phone}</a>` : ''}
+        </div>
+      </div>` : ''}
+    ${partner ? `
+      <div class="field"><label>Mitra</label>
+        <div style="background:#F0FDF4;padding:10px 12px;border-radius:10px;">
+          <strong>${escapeHtml(partner.business_name)}</strong><br>
+          📍 ${escapeHtml(partner.address || '-')}
+        </div>
+      </div>` : ''}
+    <div class="field"><label>Pickup</label><div>📍 ${escapeHtml(order.pickup_address || '-')}</div></div>
+    <div class="field"><label>Tujuan</label><div>🎯 ${escapeHtml(order.destination_address || '-')}</div></div>
+    ${items.length ? `<div class="field"><label>Items</label><div style="background:#F8FAFC;padding:10px 12px;border-radius:10px;font-size:13px;">${items.map(i => `• ${escapeHtml(i.item_name)} × ${i.quantity} = Rp ${Number(i.subtotal).toLocaleString('id-ID')}`).join('<br>')}</div></div>` : ''}
+    ${order.customer_note ? `<div class="field"><label>Catatan</label><div>${escapeHtml(order.customer_note)}</div></div>` : ''}
+    <div class="field"><label>Rincian</label>
+      <div style="background:#F8FAFC;padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.7;">
+        ${order.subtotal > 0 ? `Subtotal: Rp ${Number(order.subtotal).toLocaleString('id-ID')}<br>` : ''}
+        Jarak: ${Number(order.distance_km||0).toFixed(1)} km<br>
+        Biaya Jasa: Rp ${Number(order.delivery_fee||0).toLocaleString('id-ID')}<br>
+        Biaya Layanan: Rp ${Number(order.service_fee||0).toLocaleString('id-ID')}<br>
+        <hr style="margin:6px 0;border:none;border-top:1px dashed var(--border);">
+        <strong style="color:var(--green);font-size:15px;">Total: Rp ${Number(order.total_price).toLocaleString('id-ID')}</strong>
+      </div>
+    </div>
+    <div class="field"><label>Pembagian</label>
+      <div style="background:#F8FAFC;padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.7;">
+        🛵 Driver: <strong>Rp ${Number(order.driver_earnings||0).toLocaleString('id-ID')}</strong><br>
+        ${order.mitra_earnings > 0 ? `🏪 Mitra: <strong>Rp ${Number(order.mitra_earnings).toLocaleString('id-ID')}</strong><br>` : ''}
+        💼 Platform: <strong style="color:var(--green);">Rp ${Number(order.platform_earnings||0).toLocaleString('id-ID')}</strong>
+      </div>
+    </div>
+    ${history.length ? `
+      <div class="field"><label>Riwayat</label>
+        <div style="background:#F8FAFC;padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.6;">
+          ${history.map(h => `<div style="margin-bottom:4px;"><strong>${h.status}</strong> · <span style="color:var(--muted);font-size:10.5px;">${formatDate(h.created_at)}</span></div>`).join('')}
+        </div>
+      </div>` : ''}
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closeGlobalModal()">Tutup</button>
+      <button class="btn btn-primary" onclick="admOpenWA('${order.id}')">💬 WhatsApp</button>
+    </div>
+    ${order.status !== 'SELESAI' && order.status !== 'DIBATALKAN' ? `
+      <button class="btn btn-red" style="margin-top:8px;" onclick="admCancelOrder('${order.id}')">❌ Batalkan Order</button>
+    ` : ''}
+  `);
+}
+
+async function admCancelOrder(orderId) {
+  const ok = await showConfirm({ icon:'❌', title:'Batalkan Order?', message:'Order akan dibatalkan.', confirmText:'Ya', confirmColor:'red' });
+  if (!ok) return;
+  try {
+    const order = (APP.data.allOrders || []).find(o => o.id === orderId);
+    await APP.supabase.from('orders').update({ status:'DIBATALKAN', updated_at:new Date().toISOString() }).eq('id', orderId);
+    await APP.supabase.from('order_status_history').insert({ order_id:orderId, status:'DIBATALKAN', changed_by:APP.user.id, note:'Dibatalkan admin' });
+    if (order?.driver_id) await APP.supabase.from('drivers').update({ online_status:'ONLINE' }).eq('id', order.driver_id);
+    showToast('✅ Order dibatalkan', 'success');
+    closeGlobalModal();
+    await loadAdmOrders();
+    await loadAdmDashboard();
+  } catch (err) { showToast('Gagal: ' + err.message, 'error'); }
+}
+
+async function loadAdmDrivers() {
+  const c = document.getElementById('admDriversList');
+  c.innerHTML = '<div class="skeleton"></div>';
+  const { data } = await APP.supabase.from('drivers').select('*').order('online_status');
+  if (!data || !data.length) { c.innerHTML = '<div class="empty"><span class="icon">🛵</span>Belum ada driver</div>'; return; }
+  const pids = data.map(d => d.profile_id);
+  const { data: profs } = await APP.supabase.from('profiles').select('id, name, phone').in('id', pids);
+  const pMap = {};
+  (profs||[]).forEach(p => pMap[p.id] = p);
+  admDrivers = data.map(d => ({ ...d, profile: pMap[d.profile_id] }));
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const { data: todayOrders } = await APP.supabase.from('orders').select('driver_id, status, driver_earnings').gte('created_at', today.toISOString()).not('driver_id','is',null);
+  const orderCount = {}, earnings = {};
+  (todayOrders||[]).forEach(o => {
+    orderCount[o.driver_id] = (orderCount[o.driver_id] || 0) + 1;
+    if (o.status === 'SELESAI') earnings[o.driver_id] = (earnings[o.driver_id] || 0) + Number(o.driver_earnings || 0);
+  });
+
+  c.innerHTML = admDrivers.map(d => {
+    const sc = d.online_status === 'ONLINE' ? 'var(--green)' : d.online_status === 'BUSY' ? 'var(--orange)' : '#94A3B8';
+    return `
+      <div class="card" style="border-left:4px solid ${sc};">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+          <div style="width:48px;height:48px;border-radius:50%;background:${sc};color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;">
+            ${(d.profile?.name || 'D').charAt(0).toUpperCase()}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:14px;">${escapeHtml(d.profile?.name || 'Driver')}</div>
+            <div style="font-size:11px;color:var(--muted);">${d.vehicle_type||'-'} · ${d.vehicle_number||'-'}</div>
+          </div>
+          <span class="badge" style="background:${sc};">${d.online_status||'OFFLINE'}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px;background:#F8FAFC;border-radius:10px;">
+          <div style="text-align:center;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;">Hari ini</div><div style="font-size:16px;font-weight:800;color:var(--primary);">${orderCount[d.id]||0}</div></div>
+          <div style="text-align:center;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;">Pendapatan</div><div style="font-size:12px;font-weight:800;color:var(--green);">Rp ${(earnings[d.id]||0).toLocaleString('id-ID')}</div></div>
+          <div style="text-align:center;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;">Rating</div><div style="font-size:16px;font-weight:800;color:var(--orange);">⭐ ${Number(d.rating||5).toFixed(1)}</div></div>
+        </div>
+        <div style="text-align:center;margin-top:8px;">
+          ${d.profile?.phone ? `<a href="tel:${d.profile.phone}" style="color:var(--primary);text-decoration:none;font-size:12px;">📞 ${d.profile.phone}</a>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* Assign Driver */
+let admSelectedDriverId = null;
+async function admOpenAssign(orderId) {
+  const order = (APP.data.allOrders || []).find(o => o.id === orderId);
+  if (!order) return;
+  const { data: drivers } = await APP.supabase.from('drivers').select('*').order('online_status').order('rating', { ascending:false });
+  if (!drivers || !drivers.length) { showToast('Tidak ada driver', 'error'); return; }
+  const pids = drivers.map(d => d.profile_id);
+  const { data: profs } = await APP.supabase.from('profiles').select('id, name, phone').in('id', pids);
+  const pMap = {};
+  (profs||[]).forEach(p => pMap[p.id] = p);
+  const list = drivers.map(d => ({ ...d, profile: pMap[d.profile_id] }));
+  list.sort((a,b) => {
+    const o = { ONLINE:0, BUSY:1, OFFLINE:2 };
+    const diff = o[a.online_status] - o[b.online_status];
+    return diff !== 0 ? diff : (b.rating||5) - (a.rating||5);
+  });
+  admSelectedDriverId = null;
+
+  openGlobalModal(`
+    <h3>🛵 Pilih Driver</h3>
+    <div style="background:#EFF6FF;padding:12px;border-radius:10px;margin-bottom:14px;font-size:12px;">
+      <strong>${order.order_code}</strong><br>
+      <span style="color:var(--muted);">${order.service_type?.toUpperCase()} · Rp ${Number(order.total_price).toLocaleString('id-ID')}</span>
+    </div>
+    <div style="max-height:320px;overflow-y:auto;margin-bottom:14px;">
+      ${list.map(d => {
+        const sc = d.online_status === 'ONLINE' ? 'var(--green)' : d.online_status === 'BUSY' ? 'var(--orange)' : '#94A3B8';
+        return `
+          <div class="driver-item" data-did="${d.id}" onclick="admSelectDriver('${d.id}')">
+            <div class="avatar">${(d.profile?.name || 'D').charAt(0).toUpperCase()}</div>
+            <div class="info">
+              <div class="name">${escapeHtml(d.profile?.name || 'Driver')}</div>
+              <div class="meta">${d.vehicle_type||''} · ${d.vehicle_number||''} · ⭐ ${Number(d.rating||5).toFixed(1)}</div>
+            </div>
+            <span class="badge" style="background:${sc};">${d.online_status||'OFFLINE'}</span>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <button class="btn btn-primary" id="btnAssignDrv" disabled onclick="admConfirmAssign('${orderId}')">Pilih Driver Dulu</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Batal</button>
+  `);
+}
+
+function admSelectDriver(driverId) {
+  admSelectedDriverId = driverId;
+  document.querySelectorAll('.driver-item').forEach(el => el.classList.toggle('selected', el.dataset.did === driverId));
+  const btn = document.getElementById('btnAssignDrv');
+  btn.disabled = false; btn.innerText = '✅ Assign ke Driver';
+}
+
+async function admConfirmAssign(orderId) {
+  if (!admSelectedDriverId) return;
+  const btn = document.getElementById('btnAssignDrv');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span>Memproses...';
+  try {
+    const { data: driver } = await APP.supabase.from('drivers').select('*, profile:profile_id(name)').eq('id', admSelectedDriverId).maybeSingle();
+    await APP.supabase.from('orders').update({ driver_id:admSelectedDriverId, status:'DITUGASKAN', updated_at:new Date().toISOString() }).eq('id', orderId);
+    await APP.supabase.from('drivers').update({ online_status:'BUSY' }).eq('id', admSelectedDriverId);
+    await APP.supabase.from('order_status_history').insert({ order_id:orderId, status:'DITUGASKAN', changed_by:APP.user.id, note:`Driver ${driver?.profile?.name || '-'} ditugaskan` });
+    showToast('✅ Driver ditugaskan', 'success');
+    closeGlobalModal();
+    await loadAdmOrders();
+    await loadAdmDashboard();
+    await loadAdmDrivers();
+  } catch (err) { showToast('Gagal: ' + err.message, 'error'); btn.disabled = false; btn.innerText = '✅ Assign ke Driver'; }
+}
+
+/* WA Composer */
+async function admOpenWA(orderId) {
+  const { data: order } = await APP.supabase.from('orders').select('*').eq('id', orderId).single();
+  if (!order) return;
+  let customer = null, driver = null;
+  if (order.customer_id) { const { data } = await APP.supabase.from('profiles').select('name, phone').eq('id', order.customer_id).maybeSingle(); customer = data; }
+  if (order.driver_id) { const { data: d } = await APP.supabase.from('drivers').select('*, profile:profile_id(name, phone)').eq('id', order.driver_id).maybeSingle(); driver = d; }
+
+  const defaultMsg = `*ANDALAN EXPRESS*\nOrder *${order.order_code}*\n\nStatus: ${order.status}\n${driver?.profile?.name ? `Driver: ${driver.profile.name}` : ''}\nPickup: ${order.pickup_address || '-'}\nTujuan: ${order.destination_address || '-'}\nTotal: Rp ${Number(order.total_price).toLocaleString('id-ID')}`;
+
+  openGlobalModal(`
+    <h3>💬 WhatsApp</h3>
+    <div class="field"><label>Order</label><div>${order.order_code}</div></div>
+    <div class="field">
+      <label>Pesan (bisa diedit)</label>
+      <div class="wa-composer"><textarea id="waMsg">${defaultMsg}</textarea></div>
+    </div>
+    <div class="btn-row">
+      ${customer?.phone ? `<button class="btn btn-green" onclick="admSendWA('${normalizePhone(customer.phone)}')">💬 Customer</button>` : ''}
+      ${driver?.profile?.phone ? `<button class="btn btn-primary" onclick="admSendWA('${normalizePhone(driver.profile.phone)}')">💬 Driver</button>` : ''}
+    </div>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Tutup</button>
+  `);
+}
+
+function admSendWA(phone) {
+  const msg = document.getElementById('waMsg').value.trim();
+  if (!msg) { showToast('Pesan kosong', 'error'); return; }
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  closeGlobalModal();
+}
+
+/* Reports */
+async function admShowReport(period) {
+  const now = new Date();
+  let start;
+  let title;
+  if (period === 'today') { start = new Date(now); start.setHours(0,0,0,0); title = 'Laporan Hari Ini'; }
+  else { start = new Date(now); start.setDate(start.getDate()-7); start.setHours(0,0,0,0); title = 'Laporan 7 Hari'; }
+  const { data } = await APP.supabase.from('orders').select('*').gte('created_at', start.toISOString());
+  const list = data || [];
+  const done = list.filter(o => o.status === 'SELESAI');
+  const totalRev = list.reduce((s,o) => s + Number(o.total_price||0), 0);
+  const platformEarn = list.reduce((s,o) => s + Number(o.platform_earnings||0), 0);
+  const driverEarn = list.reduce((s,o) => s + Number(o.driver_earnings||0), 0);
+  const mitraEarn = list.reduce((s,o) => s + Number(o.mitra_earnings||0), 0);
+
+  openGlobalModal(`
+    <h3>📊 ${title}</h3>
+    <div class="field"><label>Ringkasan</label>
+      <div style="background:#F8FAFC;padding:12px;border-radius:10px;font-size:13px;line-height:1.7;">
+        Total Order: <strong>${list.length}</strong><br>
+        Selesai: <strong>${done.length}</strong><br>
+        Total Transaksi: <strong style="color:var(--primary);">Rp ${totalRev.toLocaleString('id-ID')}</strong>
+      </div>
+    </div>
+    <div class="field"><label>Pembagian</label>
+      <div style="background:#F8FAFC;padding:12px;border-radius:10px;font-size:13px;line-height:1.7;">
+        💼 Platform: <strong style="color:var(--green);">Rp ${platformEarn.toLocaleString('id-ID')}</strong><br>
+        🛵 Driver: <strong>Rp ${driverEarn.toLocaleString('id-ID')}</strong><br>
+        🏪 Mitra: <strong>Rp ${mitraEarn.toLocaleString('id-ID')}</strong>
+      </div>
+    </div>
+    <button class="btn btn-ghost" onclick="closeGlobalModal()">Tutup</button>
+  `);
+}
+
+async function admShowTransactions() {
+  const { data } = await APP.supabase.from('orders').select('*').eq('status','SELESAI').order('updated_at', { ascending:false }).limit(20);
+  const list = data || [];
+  openGlobalModal(`
+    <h3>💰 Transaksi Terbaru</h3>
+    ${!list.length ? '<div class="empty">Belum ada transaksi</div>' : list.map(o => `
+      <div style="background:#F8FAFC;padding:10px 12px;border-radius:10px;margin-bottom:6px;font-size:12px;">
+        <div style="display:flex;justify-content:space-between;">
+          <strong style="color:var(--primary);">${o.order_code}</strong>
+          <strong style="color:var(--green);">Rp ${Number(o.total_price).toLocaleString('id-ID')}</strong>
+        </div>
+        <div style="color:var(--muted);font-size:11px;margin-top:2px;">
+          ${getServiceIcon(o.service_type)} ${o.service_type?.toUpperCase()} · ${formatDate(o.updated_at)}
+        </div>
+      </div>
+    `).join('')}
+    <button class="btn btn-ghost" style="margin-top:12px;" onclick="closeGlobalModal()">Tutup</button>
+  `);
+}
+
+/* Admin: Add Driver */
+function admOpenAddDriver() {
+  openGlobalModal(`
+    <h3>➕ Tambah Driver Baru</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Buat akun login + data driver sekaligus.</p>
+    <div style="background:#FEF3C7;padding:10px 12px;border-radius:10px;font-size:11px;color:#92400E;margin-bottom:14px;line-height:1.5;">
+      ⚠️ <strong>Penting:</strong> Matikan "Confirm email" di Supabase → Authentication → Providers → Email, agar driver bisa langsung login.
+    </div>
+    <div class="field"><label>Nama Lengkap <span class="req">*</span></label><input type="text" id="drvFormName" placeholder="Budi Santoso"></div>
+    <div class="field"><label>Email <span class="req">*</span></label><input type="email" id="drvFormEmail" placeholder="budi@andalan.com"></div>
+    <div class="field"><label>Password <span class="req">*</span></label><input type="text" id="drvFormPassword" value="andalan123"><div style="font-size:11px;color:var(--muted);margin-top:4px;">Default: andalan123</div></div>
+    <div class="field"><label>Nomor HP <span class="req">*</span></label><input type="tel" id="drvFormPhone" placeholder="08xxxxxxxxxx"></div>
+    <div class="field"><label>Kode Driver</label><input type="text" id="drvFormCode" placeholder="DRV-001 (auto jika kosong)"></div>
+    <div class="field"><label>Tipe Kendaraan</label>
+      <select id="drvFormVehicle">
+        <option value="Motor">🏍️ Motor</option>
+        <option value="Mobil">🚗 Mobil</option>
+      </select>
+    </div>
+    <div class="field"><label>Nomor Kendaraan</label><input type="text" id="drvFormVehicleNum" placeholder="B 1234 XYZ"></div>
+    <button class="btn btn-primary" id="btnAddDrv" onclick="admSaveDriver()">💾 Simpan Driver</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Batal</button>
+  `);
+  setTimeout(() => document.getElementById('drvFormName')?.focus(), 300);
+}
+
+async function admSaveDriver() {
+  const name = document.getElementById('drvFormName').value.trim();
+  const email = document.getElementById('drvFormEmail').value.trim();
+  const password = document.getElementById('drvFormPassword').value;
+  const phone = document.getElementById('drvFormPhone').value.trim();
+  const driverCode = document.getElementById('drvFormCode').value.trim();
+  const vehicle = document.getElementById('drvFormVehicle').value;
+  const vehicleNum = document.getElementById('drvFormVehicleNum').value.trim();
+
+  if (!name || !email || !password || !phone) { showToast('Field * wajib diisi', 'error'); return; }
+  if (password.length < 6) { showToast('Password minimal 6 karakter', 'error'); return; }
+
+  const btn = document.getElementById('btnAddDrv');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span>Membuat akun...';
+
+  try {
+    const { data: authData, error: authErr } = await APP.supabase.auth.signUp({
+      email, password,
+      options: { data: { name, phone: normalizePhone(phone), role: 'driver' } }
+    });
+    if (authErr) throw new Error('Auth: ' + authErr.message);
+    if (!authData.user) throw new Error('Gagal buat user');
+
+    const userId = authData.user.id;
+
+    btn.innerHTML = '<span class="spinner-sm"></span>Menyimpan profil...';
+    const { error: pErr } = await APP.supabase.from('profiles').insert([{
+      id: userId, email, name, phone: normalizePhone(phone), role: 'driver', status: 'active'
+    }]);
+    if (pErr) throw new Error('Profile: ' + pErr.message);
+
+    btn.innerHTML = '<span class="spinner-sm"></span>Menyimpan data driver...';
+    const autoCode = driverCode || ('DRV-' + Date.now().toString().slice(-5));
+    const { error: dErr } = await APP.supabase.from('drivers').insert([{
+      profile_id: userId, driver_code: autoCode,
+      vehicle_type: vehicle, vehicle_number: vehicleNum || '-',
+      online_status: 'OFFLINE', rating: 5.00, total_orders: 0
+    }]);
+    if (dErr) throw new Error('Driver: ' + dErr.message);
+
+    // Create wallet
+    await APP.supabase.from('wallets').insert([{
+      owner_id: userId, owner_role: 'driver', balance: 0, total_earned: 0
+    }]).then(() => {}).catch(() => {});
+
+    showToast('✅ Driver berhasil dibuat!', 'success');
+    closeGlobalModal();
+
+    // Cek: kalau signUp mengubah session (auto login user baru), restore admin
+    const { data: { user: currentUser } } = await APP.supabase.auth.getUser();
+    if (currentUser && currentUser.id !== userId) {
+      // Admin masih login, aman
+      await loadAdmDrivers();
+    } else if (currentUser && currentUser.id === userId) {
+      // Admin ter-logout karena signUp auto-login
+      showToast('⚠️ Re-login admin diperlukan...', 'error');
+      setTimeout(async () => {
+        await APP.supabase.auth.signOut();
+        window.location.reload();
+      }, 2500);
+    } else {
+      await loadAdmDrivers();
+    }
+
+  } catch (err) {
+    console.error(err);
+    showToast('Gagal: ' + err.message, 'error');
+    btn.disabled = false; btn.innerText = '💾 Simpan Driver';
+  }
+}
+
+/* Admin: Add Partner */
+function admOpenAddPartner() {
+  openGlobalModal(`
+    <h3>➕ Tambah Mitra Baru</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Buat akun login + data toko sekaligus.</p>
+    <div style="background:#F0FDF4;padding:10px 12px;border-radius:10px;font-size:11px;color:#166534;margin-bottom:14px;line-height:1.5;">
+      ✅ Mitra bisa langsung login dan kelola menu setelah ini.
+    </div>
+    <div class="field"><label>Nama Pemilik <span class="req">*</span></label><input type="text" id="ptnFormName" placeholder="Ibu Siti"></div>
+    <div class="field"><label>Email <span class="req">*</span></label><input type="email" id="ptnFormEmail" placeholder="siti@andalan.com"></div>
+    <div class="field"><label>Password <span class="req">*</span></label><input type="text" id="ptnFormPassword" value="mitra123"><div style="font-size:11px;color:var(--muted);margin-top:4px;">Default: mitra123</div></div>
+    <div class="field"><label>Nomor HP <span class="req">*</span></label><input type="tel" id="ptnFormPhone" placeholder="08xxxxxxxxxx"></div>
+    <div class="field"><label>Nama Toko <span class="req">*</span></label><input type="text" id="ptnFormBusiness" placeholder="Warung Siti"></div>
+    <div class="field"><label>Alamat Toko <span class="req">*</span></label><textarea id="ptnFormAddress" placeholder="Jl. Merdeka No. 10"></textarea></div>
+    <div class="field"><label>Jam Buka</label><input type="time" id="ptnFormOpen" value="08:00"></div>
+    <div class="field"><label>Jam Tutup</label><input type="time" id="ptnFormClose" value="22:00"></div>
+    <button class="btn btn-green" id="btnAddPtn" onclick="admSavePartner()">💾 Simpan Mitra</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Batal</button>
+  `);
+  setTimeout(() => document.getElementById('ptnFormName')?.focus(), 300);
+}
+
+async function admSavePartner() {
+  const name = document.getElementById('ptnFormName').value.trim();
+  const email = document.getElementById('ptnFormEmail').value.trim();
+  const password = document.getElementById('ptnFormPassword').value;
+  const phone = document.getElementById('ptnFormPhone').value.trim();
+  const businessName = document.getElementById('ptnFormBusiness').value.trim();
+  const address = document.getElementById('ptnFormAddress').value.trim();
+  const openTime = document.getElementById('ptnFormOpen').value;
+  const closeTime = document.getElementById('ptnFormClose').value;
+
+  if (!name || !email || !password || !phone || !businessName || !address) {
+    showToast('Field * wajib diisi', 'error'); return;
+  }
+
+  const btn = document.getElementById('btnAddPtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span>Membuat akun...';
+
+  try {
+    const { data: authData, error: authErr } = await APP.supabase.auth.signUp({
+      email, password,
+      options: { data: { name, phone: normalizePhone(phone), role: 'mitra' } }
+    });
+    if (authErr) throw new Error('Auth: ' + authErr.message);
+    if (!authData.user) throw new Error('Gagal buat user');
+
+    const userId = authData.user.id;
+
+    btn.innerHTML = '<span class="spinner-sm"></span>Menyimpan profil...';
+    const { error: pErr } = await APP.supabase.from('profiles').insert([{
+      id: userId, email, name, phone: normalizePhone(phone), role: 'mitra', status: 'active'
+    }]);
+    if (pErr) throw new Error('Profile: ' + pErr.message);
+
+    btn.innerHTML = '<span class="spinner-sm"></span>Menyimpan data toko...';
+    const { error: ptErr } = await APP.supabase.from('partners').insert([{
+      profile_id: userId,
+      business_name: businessName,
+      address,
+      phone: normalizePhone(phone),
+      opening_time: openTime,
+      closing_time: closeTime,
+      status: 'CLOSED',
+      rating: 5.00
+    }]);
+    if (ptErr) throw new Error('Partner: ' + ptErr.message);
+
+    await APP.supabase.from('wallets').insert([{
+      owner_id: userId, owner_role: 'mitra', balance: 0, total_earned: 0
+    }]).then(() => {}).catch(() => {});
+
+    showToast('✅ Mitra berhasil dibuat!', 'success');
+    closeGlobalModal();
+
+    const { data: { user: currentUser } } = await APP.supabase.auth.getUser();
+    if (currentUser && currentUser.id === userId) {
+      showToast('⚠️ Re-login admin diperlukan...', 'error');
+      setTimeout(async () => {
+        await APP.supabase.auth.signOut();
+        window.location.reload();
+      }, 2500);
+    } else {
+      await loadAdmPartners();
+    }
+
+  } catch (err) {
+    console.error(err);
+    showToast('Gagal: ' + err.message, 'error');
+    btn.disabled = false; btn.innerText = '💾 Simpan Mitra';
+  }
+}
+
+async function loadAdmPartners() {
+  const c = document.getElementById('admPartnersList');
+  if (!c) return;
+  c.innerHTML = '<div class="skeleton"></div>';
+  const { data } = await APP.supabase.from('partners').select('*').order('created_at', { ascending:false });
+  if (!data || !data.length) { c.innerHTML = '<div class="empty"><span class="icon">🏪</span>Belum ada mitra</div>'; return; }
+
+  const pids = data.map(p => p.profile_id);
+  const { data: profs } = await APP.supabase.from('profiles').select('id, name, phone').in('id', pids);
+  const pMap = {};
+  (profs||[]).forEach(p => pMap[p.id] = p);
+
+  const { data: wallets } = await APP.supabase.from('wallets').select('*').in('owner_id', pids);
+  const wMap = {};
+  (wallets||[]).forEach(w => wMap[w.owner_id] = w);
+
+  c.innerHTML = data.map(p => {
+    const sc = p.status === 'OPEN' ? 'var(--green)' : '#94A3B8';
+    const profile = pMap[p.profile_id];
+    const wallet = wMap[p.profile_id];
+    return `
+      <div class="card" style="border-left:4px solid ${sc};">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+          <div style="width:48px;height:48px;border-radius:14px;background:${sc};color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">
+            ${escapeHtml((p.business_name || 'M').charAt(0).toUpperCase())}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:14px;">${escapeHtml(p.business_name)}</div>
+            <div style="font-size:11px;color:var(--muted);">👤 ${escapeHtml(profile?.name || '-')} · 📞 ${profile?.phone || '-'}</div>
+          </div>
+          <span class="badge" style="background:${sc};">${p.status}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">📍 ${escapeHtml(p.address || '-')}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;background:#F0FDF4;border-radius:10px;">
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;">Saldo</div>
+            <div style="font-size:14px;font-weight:800;color:var(--green);">Rp ${Number(wallet?.balance || 0).toLocaleString('id-ID')}</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;">Total Earned</div>
+            <div style="font-size:14px;font-weight:800;color:var(--primary);">Rp ${Number(wallet?.total_earned || 0).toLocaleString('id-ID')}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--muted);text-align:center;">
+          🕒 ${p.opening_time?.slice(0,5) || '--:--'} - ${p.closing_time?.slice(0,5) || '--:--'}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function switchAdmTab(tab) {
+  document.querySelectorAll('#app .nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+  document.querySelectorAll('#app .page').forEach(p => p.classList.remove('active'));
+  document.getElementById('adm-page-' + tab)?.classList.add('active');
+  window.scrollTo({ top:0, behavior:'smooth' });
+  if (tab === 'dashboard') { await loadAdmDashboard(); await loadAdmWallet(); }
+  if (tab === 'orders') await loadAdmOrders();
+  if (tab === 'drivers') await loadAdmDrivers();
+  if (tab === 'partners') await loadAdmPartners();
+}
+
+function subscribeAdmRealtime() {
+  APP.realtimeChannel = APP.supabase.channel('admin-orders')
+    .on('postgres_changes', { event:'*', schema:'public', table:'orders' },
+      (payload) => {
+        loadAdmDashboard();
+        loadAdmOrders();
+        loadAdmWallet();
+        if (payload.eventType === 'INSERT') { showToast('🔔 Order baru', 'success'); playBeep(); }
+        if (payload.eventType === 'UPDATE' && payload.new?.status === 'SELESAI') {
+          showToast('✅ Order selesai: ' + payload.new.order_code, 'success');
+        }
+      }
+    ).subscribe();
+}
+
+async function admLogout() {
+  const ok = await showConfirm({ icon:'🚪', title:'Keluar?', message:'Anda akan keluar.', confirmText:'Ya', confirmColor:'red' });
+  if (!ok) return;
+  await APP.supabase.auth.signOut();
+  window.location.reload();
+}
+
+window.addEventListener('online', () => showToast('🌐 Online', 'success'));
+window.addEventListener('offline', () => showToast('📴 Offline', 'error'));
+
+/* ================================================================
+   START
+   ================================================================ */
+boot();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
