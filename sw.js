@@ -1,4 +1,4 @@
-const CACHE_NAME = 'andalan-express-v2';  // ← ubah dari v1 ke v2
+const CACHE_NAME = 'andalan-express-v2.01';  // ← ubah dari v1 ke v2
 const urlsToCache = [
   './',
   './index.html',
