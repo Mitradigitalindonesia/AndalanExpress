@@ -218,7 +218,59 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif
 /* WA composer */
 .wa-composer { background:#F0FDF4; border:1.5px solid #BBF7D0; border-radius:14px; padding:14px; margin-bottom:14px; }
 .wa-composer textarea { width:100%; padding:12px; border:1.5px solid #BBF7D0; border-radius:10px; font-size:13px; font-family:inherit; min-height:100px; resize:vertical; }
+/* ================================================================
+   TOMBOL PANDUAN (Floating Action Button)
+   ================================================================ */
+.help-fab {
+  position: fixed;
+  bottom: 92px;
+  right: 16px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0B7CFF, #4A9EFF);
+  color: white;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(11,124,255,.4);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .2s, box-shadow .2s;
+  animation: helpPulse 3s ease-in-out infinite;
+  text-decoration: none;
+}
+.help-fab:active { transform: scale(.9); }
+.help-fab:hover { box-shadow: 0 6px 20px rgba(11,124,255,.55); }
+
+@keyframes helpPulse {
+  0%,100% { box-shadow: 0 4px 16px rgba(11,124,255,.4); }
+  50% { box-shadow: 0 4px 24px rgba(11,124,255,.65); }
+}
+
+/* Warna sesuai role */
+body[data-role="mitra"] .help-fab {
+  background: linear-gradient(135deg, #16A34A, #22C55E);
+  box-shadow: 0 4px 16px rgba(22,163,74,.4);
+}
+body[data-role="mitra"] .help-fab:hover {
+  box-shadow: 0 6px 20px rgba(22,163,74,.55);
+}
+body[data-role="admin"] .help-fab {
+  background: linear-gradient(135deg, #8B5CF6, #A78BFA);
+  box-shadow: 0 4px 16px rgba(139,92,246,.4);
+}
+body[data-role="admin"] .help-fab:hover {
+  box-shadow: 0 6px 20px rgba(139,92,246,.55);
+}
+body[data-role="guest"] .help-fab,
+body[data-role="loading"] .help-fab {
+  display: none;
+}
 </style>
+
 </head>
 <body data-role="loading">
 
@@ -238,7 +290,11 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif
 <div class="modal-overlay center" id="globalConfirmModal" onclick="closeConfirmModal(event)">
   <div class="confirm-modal" id="globalConfirmContent"></div>
 </div>
-
+<!-- ⭐ TOMBOL PANDUAN (redirect ke buklet.html) -->
+<a href="buklet.html" target="_blank" class="help-fab" id="helpFab" 
+   title="Buka Panduan" rel="noopener">
+  📖
+</a>
 <script>
 /* ================================================================
    KONFIGURASI
