@@ -2243,25 +2243,29 @@ async function renderMitraView(root) {
         </div>
 
         <div class="wallet-hero green">
-          <div class="lbl">💰 Saldo Aktif</div>
-          <div class="val" id="mitraBalance">Rp 0</div>
-          <div class="meta">
-            <span>📈 Total: <strong id="mitraTotalEarned">Rp 0</strong></span>
-            <span>💵 Hari ini: <strong id="mitraTodayEarn">Rp 0</strong></span>
-          </div>
-        </div>
+  <div class="lbl">💰 Saldo Aktif</div>
+  <div class="val" id="mitraBalance">Rp 0</div>
+  <div class="meta">
+    <span>📈 Total: <strong id="mitraTotalEarned">Rp 0</strong></span>
+    <span>💵 Hari ini: <strong id="mitraTodayEarn">Rp 0</strong></span>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.2);">
+    <div style="flex:1;text-align:center;">
+      <div style="font-size:9.5px;opacity:.7;text-transform:uppercase;font-weight:700;">Selesai</div>
+      <div style="font-size:16px;font-weight:800;margin-top:2px;" id="mitraStatDone">0</div>
+    </div>
+    <div style="flex:1;text-align:center;border-left:1px solid rgba(255,255,255,.2);border-right:1px solid rgba(255,255,255,.2);">
+      <div style="font-size:9.5px;opacity:.7;text-transform:uppercase;font-weight:700;">Diproses</div>
+      <div style="font-size:16px;font-weight:800;margin-top:2px;" id="mitraStatProc">0</div>
+    </div>
+    <div style="flex:1;text-align:center;">
+      <div style="font-size:9.5px;opacity:.7;text-transform:uppercase;font-weight:700;">Siap</div>
+      <div style="font-size:16px;font-weight:800;margin-top:2px;" id="mitraStatReady">0</div>
+    </div>
+  </div>
+</div>
 
-        <div class="mitra-hero">
-          <div class="lbl">💰 Pendapatan Hari Ini</div>
-          <div class="val" id="mitraRevenue">Rp 0</div>
-          <div style="font-size:11.5px;opacity:.78;" id="mitraRevenueMeta">0 order selesai</div>
-          <div class="mitra-hero-row">
-            <div class="mitra-hero-stat"><div class="lbl">Selesai</div><div class="val" id="mitraStatDone">0</div></div>
-            <div class="mitra-hero-stat"><div class="lbl">Diproses</div><div class="val" id="mitraStatProc">0</div></div>
-            <div class="mitra-hero-stat"><div class="lbl">Siap</div><div class="val" id="mitraStatReady">0</div></div>
-          </div>
-        </div>
-
+        <!-- 📊 CHART PERFORMA -->
         <div class="section" style="margin-top:20px;">
           <h2>📊 Performa 7 Hari</h2>
           <div class="chart-card">
@@ -2279,10 +2283,29 @@ async function renderMitraView(root) {
           </div>
         </div>
 
+        <!-- 🍽️ MENU TERSEDIA (di bawah chart) -->
         <div class="section" style="margin-top:20px;">
+          <h2 style="display:flex;justify-content:space-between;align-items:center;">
+            <span>🍽️ Menu Tersedia</span>
+            <button class="chip" style="font-size:11px;padding:6px 12px;background:var(--green);color:white;border:none;font-weight:700;" onclick="openMitraAddMenu()">+ Tambah</button>
+          </h2>
+          <div class="filter-chips" style="padding:0 0 10px;">
+            <button class="chip active" data-mf="ALL" onclick="setMitraMenuFilter('ALL')">Semua <span class="count" id="mmc-all">0</span></button>
+            <button class="chip" data-mf="Makanan" onclick="setMitraMenuFilter('Makanan')">🍛 Makanan <span class="count" id="mmc-makanan">0</span></button>
+            <button class="chip" data-mf="Minuman" onclick="setMitraMenuFilter('Minuman')">🥤 Minuman <span class="count" id="mmc-minuman">0</span></button>
+            <button class="chip" data-mf="Cemilan" onclick="setMitraMenuFilter('Cemilan')">🍿 Cemilan <span class="count" id="mmc-cemilan">0</span></button>
+          </div>
+          <div id="mitraMenuListHome"><div class="skeleton"></div></div>
+          <button class="btn btn-outline btn-sm" style="margin-top:10px;" onclick="switchMitraTab('menu')">Lihat Semua Menu →</button>
+        </div>
+
+        <!-- 🔔 ORDER BARU -->
+        <div class="section" style="margin-top:20px;margin-bottom:20px;">
           <h2>🔔 Order Baru <span class="badge" id="mitraNewCount" style="background:var(--orange);display:none;">0</span></h2>
           <div id="mitraNewOrders"><div class="skeleton"></div></div>
         </div>
+
+        <div class="powered">Andalan Express · Mitra Panel</div>
       </div>
 
       <div class="page" id="mitra-page-menu">
@@ -2290,10 +2313,10 @@ async function renderMitraView(root) {
           <div><h1>ANDALAN EXPRESS</h1><div class="name">Menu</div><div class="sub" id="mitraMenuSub">0 item</div></div>
         </div>
         <div class="filter-chips" style="padding-top:16px;">
-          <button class="chip active" data-mf="ALL" onclick="setMitraMenuFilter('ALL')">Semua <span class="count" id="mmc-all">0</span></button>
-          <button class="chip" data-mf="Makanan" onclick="setMitraMenuFilter('Makanan')">🍛 Makanan <span class="count" id="mmc-makanan">0</span></button>
-          <button class="chip" data-mf="Minuman" onclick="setMitraMenuFilter('Minuman')">🥤 Minuman <span class="count" id="mmc-minuman">0</span></button>
-          <button class="chip" data-mf="Cemilan" onclick="setMitraMenuFilter('Cemilan')">🍿 Cemilan <span class="count" id="mmc-cemilan">0</span></button>
+          <button class="chip active" data-mf="ALL" onclick="setMitraMenuFilter('ALL')">Semua <span class="count" id="mmc-all-page">0</span></button>
+          <button class="chip" data-mf="Makanan" onclick="setMitraMenuFilter('Makanan')">🍛 Makanan</button>
+          <button class="chip" data-mf="Minuman" onclick="setMitraMenuFilter('Minuman')">🥤 Minuman</button>
+          <button class="chip" data-mf="Cemilan" onclick="setMitraMenuFilter('Cemilan')">🍿 Cemilan</button>
         </div>
         <div style="padding:0 16px;" id="mitraMenuList"><div class="skeleton"></div></div>
         <div style="padding:16px;">
@@ -2311,51 +2334,40 @@ async function renderMitraView(root) {
           <button class="chip" data-of="PROCESSING" onclick="setMitraOrderFilter('PROCESSING')">🔄 Diproses <span class="count" id="moc-proc">0</span></button>
           <button class="chip" data-of="READY" onclick="setMitraOrderFilter('READY')">📦 Siap <span class="count" id="moc-ready">0</span></button>
           <button class="chip" data-of="DONE" onclick="setMitraOrderFilter('DONE')">✅ Selesai <span class="count" id="moc-done">0</span></button>
+          <button class="chip" data-of="CANCELED" onclick="setMitraOrderFilter('CANCELED')">❌ Ditolak <span class="count" id="moc-cancel">0</span></button>
         </div>
         <div style="padding:0 16px;" id="mitraOrderList"><div class="skeleton"></div></div>
       </div>
 
-      <div class="page" id="mitra-page-profile">
-        <div class="header" style="background:linear-gradient(135deg,#16A34A,#22C55E);">
-          <div><h1>ANDALAN EXPRESS</h1><div class="name">Pengaturan</div><div class="sub">Kelola info usaha</div></div>
-        </div>
+<div class="page" id="mitra-page-profile">
+  <div class="header" style="background:linear-gradient(135deg,#16A34A,#22C55E);">
+    <div><h1>ANDALAN EXPRESS</h1><div class="name">Pengaturan</div><div class="sub">Kelola info usaha</div></div>
+  </div>
 
-        <div class="section" style="margin-top:16px;">
-          <h2>📊 Chart 30 Hari</h2>
-          <div class="chart-card">
-            <div style="height:180px;position:relative;"><canvas id="mitraChart30d"></canvas></div>
-          </div>
-        </div>
+  <div style="background:white;padding:24px 20px;text-align:center;border-radius:20px;margin:16px;box-shadow:var(--shadow);">
+    <div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#16A34A,#22C55E);color:white;font-size:32px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+      ${escapeHtml((APP.profile?.name || 'M').charAt(0).toUpperCase())}
+    </div>
+    <h2 style="font-size:18px;" id="mitraProfileName">${escapeHtml(APP.profile?.name || 'Mitra')}</h2>
+    <p style="font-size:13px;color:var(--muted);" id="mitraProfileAddr">-</p>
+    <p style="margin-top:6px;"><span class="badge" id="mitraProfileBadge" style="background:#94A3B8;">TUTUP</span></p>
+  </div>
 
-        <div class="section" style="margin-top:20px;">
-          <h2>💳 Mutasi Saldo Terbaru</h2>
-          <div id="mitraWalletTx"><div class="skeleton"></div></div>
-        </div>
-
-        <div style="background:white;padding:24px 20px;text-align:center;border-radius:20px;margin:16px;box-shadow:var(--shadow);">
-          <div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#16A34A,#22C55E);color:white;font-size:32px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
-            ${escapeHtml((APP.profile?.name || 'M').charAt(0).toUpperCase())}
-          </div>
-          <h2 style="font-size:18px;" id="mitraProfileName">${escapeHtml(APP.profile?.name || 'Mitra')}</h2>
-          <p style="font-size:13px;color:var(--muted);" id="mitraProfileAddr">-</p>
-          <p style="margin-top:6px;"><span class="badge" id="mitraProfileBadge" style="background:#94A3B8;">TUTUP</span></p>
-        </div>
-
-        <div class="card" style="padding:0;margin:0 16px;overflow:hidden;">
-          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="openMitraEditStore()">
-            <span>🏪</span><span>Edit Info Toko</span>
-          </div>
-          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="openMitraEditHours()">
-            <span>🕒</span><span>Jam Operasional</span>
-          </div>
-          <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;" onclick="mitraWhatsAppAdmin()">
-            <span>💬</span><span>Hubungi Admin</span>
-          </div>
-          <div style="padding:16px;cursor:pointer;color:var(--red);display:flex;gap:12px;" onclick="mitraLogout()">
-            <span>🚪</span><span style="color:var(--red);">Keluar</span>
-          </div>
-        </div>
-      </div>
+  <div class="card" style="padding:0;margin:0 16px;overflow:hidden;">
+    <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;align-items:center;" onclick="openMitraEditStore()">
+      <span>🏪</span><span>Edit Info Toko</span>
+    </div>
+    <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;align-items:center;" onclick="openMitraEditHours()">
+      <span>🕒</span><span>Jam Operasional</span>
+    </div>
+    <div style="padding:16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:12px;align-items:center;" onclick="mitraWhatsAppAdmin()">
+      <span>💬</span><span>Hubungi Admin</span>
+    </div>
+    <div style="padding:16px;cursor:pointer;display:flex;gap:12px;align-items:center;" onclick="mitraLogout()">
+      <span>🚪</span><span style="color:var(--red);">Keluar</span>
+    </div>
+  </div>
+</div>
 
       <div class="bottom-nav">
         <div class="nav-item active" data-tab="home" onclick="switchMitraTab('home')"><span class="icon">🏠</span>Beranda</div>
@@ -2375,14 +2387,23 @@ async function renderMitraView(root) {
   return () => {};
 }
 
+/* ---------- PROFILE ---------- */
 async function loadMitraProfile() {
-  const { data: partner } = await APP.supabase.from('partners').select('*').eq('profile_id', APP.user.id).maybeSingle();
+  const { data: partner } = await APP.supabase
+    .from('partners').select('*').eq('profile_id', APP.user.id).maybeSingle();
   if (!partner) { showToast('Data mitra belum dibuat', 'error'); return; }
   APP.data.partner = partner;
-  document.getElementById('mitraStoreName').innerText = partner.business_name || 'Mitra';
-  document.getElementById('mitraStoreHours').innerText = (partner.opening_time && partner.closing_time) ? `${partner.opening_time.slice(0,5)} - ${partner.closing_time.slice(0,5)}` : '--:-- - --:--';
-  document.getElementById('mitraProfileName').innerText = partner.business_name || 'Mitra';
-  document.getElementById('mitraProfileAddr').innerText = '📍 ' + (partner.address || '-');
+  
+  const nameEl = document.getElementById('mitraStoreName');
+  const hoursEl = document.getElementById('mitraStoreHours');
+  const pNameEl = document.getElementById('mitraProfileName');
+  const pAddrEl = document.getElementById('mitraProfileAddr');
+  
+  if (nameEl) nameEl.innerText = partner.business_name || 'Mitra';
+  if (hoursEl) hoursEl.innerText = (partner.opening_time && partner.closing_time)
+    ? `${partner.opening_time.slice(0,5)} - ${partner.closing_time.slice(0,5)}` : '--:-- - --:--';
+  if (pNameEl) pNameEl.innerText = partner.business_name || 'Mitra';
+  if (pAddrEl) pAddrEl.innerText = '📍 ' + (partner.address || '-');
   updateMitraStatusUI(partner.status);
 }
 
@@ -2392,10 +2413,12 @@ function updateMitraStatusUI(status) {
   const badge = document.getElementById('mitraProfileBadge');
   if (!dot) return;
   if (status === 'OPEN') {
-    dot.classList.add('online'); txt.innerText = 'BUKA';
+    dot.classList.add('online');
+    txt.innerText = 'BUKA';
     if (badge) { badge.style.background = 'var(--green)'; badge.innerText = 'BUKA'; }
   } else {
-    dot.classList.remove('online'); txt.innerText = 'TUTUP';
+    dot.classList.remove('online');
+    txt.innerText = 'TUTUP';
     if (badge) { badge.style.background = '#94A3B8'; badge.innerText = 'TUTUP'; }
   }
 }
@@ -2417,6 +2440,7 @@ async function mitraToggleStore() {
   showToast(newStatus === 'OPEN' ? '✅ Toko Buka' : '🔴 Toko Tutup', 'success');
 }
 
+/* ---------- HOME ---------- */
 async function loadMitraHome() {
   const partner = APP.data.partner;
   if (!partner) return;
@@ -2429,24 +2453,36 @@ async function loadMitraHome() {
   const ready = list.filter(o => o.status === 'SIAP DIAMBIL');
   const newOrders = list.filter(o => o.status === 'MENUNGGU');
 
-  document.getElementById('mitraStatDone').innerText = done.length;
-  document.getElementById('mitraStatProc').innerText = proc.length;
-  document.getElementById('mitraStatReady').innerText = ready.length;
+  const doneEl = document.getElementById('mitraStatDone');
+  const procEl = document.getElementById('mitraStatProc');
+  const readyEl = document.getElementById('mitraStatReady');
+  const revEl = document.getElementById('mitraRevenue');
+  const revMetaEl = document.getElementById('mitraRevenueMeta');
+  
+  if (doneEl) doneEl.innerText = done.length;
+  if (procEl) procEl.innerText = proc.length;
+  if (readyEl) readyEl.innerText = ready.length;
+  
   const revenue = done.reduce((s,o) => s + Number(o.mitra_earnings || 0), 0);
-  document.getElementById('mitraRevenue').innerText = 'Rp ' + revenue.toLocaleString('id-ID');
-  document.getElementById('mitraRevenueMeta').innerText = done.length + ' order selesai';
+  if (revEl) revEl.innerText = 'Rp ' + revenue.toLocaleString('id-ID');
+  if (revMetaEl) revMetaEl.innerText = done.length + ' order selesai';
 
   const c = document.getElementById('mitraNewOrders');
   const cnt = document.getElementById('mitraNewCount');
-  if (!newOrders.length) {
-    c.innerHTML = '<div class="empty"><span class="icon">✨</span>Belum ada order baru</div>';
-    if (cnt) cnt.style.display = 'none';
-  } else {
-    if (cnt) { cnt.innerText = newOrders.length; cnt.style.display = 'inline-block'; }
-    c.innerHTML = newOrders.map(o => renderMitraOrderCard(o, true)).join('');
+  if (c) {
+    if (!newOrders.length) {
+      c.innerHTML = '<div class="empty"><span class="icon">✨</span>Belum ada order baru</div>';
+      if (cnt) cnt.style.display = 'none';
+    } else {
+      if (cnt) { cnt.innerText = newOrders.length; cnt.style.display = 'inline-block'; }
+      c.innerHTML = newOrders.map(o => renderMitraOrderCard(o, true)).join('');
+    }
   }
+  
+  renderMitraMenusHome();
 }
 
+/* ---------- WALLET ---------- */
 async function loadMitraWallet() {
   if (!APP.user) return;
   const stats7 = await getWalletStats(APP.user.id, 7);
@@ -2467,66 +2503,58 @@ async function loadMitraWallet() {
   if (avgEl) avgEl.innerText = 'Rp ' + Math.round(stats7.avg).toLocaleString('id-ID');
   const tot7El = document.getElementById('mitraTotal7d');
   if (tot7El) tot7El.innerText = 'Rp ' + Math.round(stats7.total).toLocaleString('id-ID');
-
-  const stats30 = await getWalletStats(APP.user.id, 30);
-  renderDailyChart('mitraChart30d', stats30.daily, '#16A34A');
-
-  const wtc = document.getElementById('mitraWalletTx');
-  if (stats30.wallet && wtc) {
-    const { data: txs } = await APP.supabase.from('wallet_transactions')
-      .select('*').eq('wallet_id', stats30.wallet.id)
-      .order('created_at', { ascending:false }).limit(15);
-    if (!txs || !txs.length) {
-      wtc.innerHTML = '<div class="empty" style="padding:16px;">Belum ada mutasi</div>';
-    } else {
-      wtc.innerHTML = txs.map(t => `
-        <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:12px;">
-          <div>
-            <div style="font-size:12px;font-weight:600;">${escapeHtml(t.description || '-')}</div>
-            <div style="font-size:10.5px;color:var(--muted);">${formatDate(t.created_at)}</div>
-          </div>
-          <div style="font-weight:700;color:${t.amount > 0 ? 'var(--green)' : 'var(--red)'};font-size:13px;">
-            ${t.amount > 0 ? '+' : ''}Rp ${Number(t.amount).toLocaleString('id-ID')}
-          </div>
-        </div>
-      `).join('');
-    }
-  }
 }
 
+/* ---------- MENU ---------- */
 async function loadMitraMenus() {
   const partner = APP.data.partner;
   if (!partner) return;
-  const { data } = await APP.supabase.from('menus').select('*').eq('partner_id', partner.id).order('category').order('name');
+  const { data } = await APP.supabase.from('menus').select('*')
+    .eq('partner_id', partner.id).order('category').order('name');
   APP.data.menus = data || [];
   updateMitraMenuCounts();
   renderMitraMenus();
+  renderMitraMenusHome();
 }
 
 function updateMitraMenuCounts() {
   const menus = APP.data.menus || [];
   const counts = { ALL: menus.length, Makanan:0, Minuman:0, Cemilan:0 };
   menus.forEach(m => { if (counts[m.category] !== undefined) counts[m.category]++; });
-  document.getElementById('mmc-all').innerText = counts.ALL;
-  document.getElementById('mmc-makanan').innerText = counts.Makanan;
-  document.getElementById('mmc-minuman').innerText = counts.Minuman;
-  document.getElementById('mmc-cemilan').innerText = counts.Cemilan;
+  
+  const allEl = document.getElementById('mmc-all');
+  if (allEl) allEl.innerText = counts.ALL;
+  const allPageEl = document.getElementById('mmc-all-page');
+  if (allPageEl) allPageEl.innerText = counts.ALL;
+  const mknEl = document.getElementById('mmc-makanan');
+  if (mknEl) mknEl.innerText = counts.Makanan;
+  const minEl = document.getElementById('mmc-minuman');
+  if (minEl) minEl.innerText = counts.Minuman;
+  const cemEl = document.getElementById('mmc-cemilan');
+  if (cemEl) cemEl.innerText = counts.Cemilan;
+  
   const sub = document.getElementById('mitraMenuSub');
   if (sub) sub.innerText = menus.length + ' item';
 }
 
 function setMitraMenuFilter(f) {
   APP.filters.menu = f;
-  document.querySelectorAll('[data-mf]').forEach(el => el.classList.toggle('active', el.dataset.mf === f));
+  document.querySelectorAll('#app [data-mf]').forEach(el => 
+    el.classList.toggle('active', el.dataset.mf === f));
   renderMitraMenus();
+  renderMitraMenusHome();
 }
 
 function renderMitraMenus() {
   const c = document.getElementById('mitraMenuList');
+  if (!c) return;
   const menus = APP.data.menus || [];
   const filter = APP.filters.menu;
   const filtered = filter === 'ALL' ? menus : menus.filter(m => m.category === filter);
-  if (!filtered.length) { c.innerHTML = '<div class="empty"><span class="icon">🍽️</span>Belum ada menu.<br>Klik tombol Tambah Menu.</div>'; return; }
+  if (!filtered.length) {
+    c.innerHTML = '<div class="empty"><span class="icon">🍽️</span>Belum ada menu.<br>Klik tombol Tambah Menu.</div>';
+    return;
+  }
   c.innerHTML = filtered.map(m => {
     const img = m.image_url ? `<img src="${m.image_url}" alt="">` : '🍽️';
     return `
@@ -2540,6 +2568,36 @@ function renderMitraMenus() {
         <div class="actions">
           <button class="icon-btn" onclick="openMitraEditMenu('${m.id}')">✏️</button>
           <button class="icon-btn" style="background:#FEF2F2;" onclick="mitraDeleteMenu('${m.id}')">🗑️</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMitraMenusHome() {
+  const c = document.getElementById('mitraMenuListHome');
+  if (!c) return;
+  const menus = APP.data.menus || [];
+  const filter = APP.filters.menu || 'ALL';
+  const filtered = filter === 'ALL' ? menus : menus.filter(m => m.category === filter);
+  const display = filtered.slice(0, 3);
+  
+  if (!display.length) {
+    c.innerHTML = '<div class="empty" style="padding:20px;"><span class="icon">🍽️</span>Belum ada menu.<br>Tap + Tambah untuk mulai jualan.</div>';
+    return;
+  }
+  c.innerHTML = display.map(m => {
+    const img = m.image_url ? `<img src="${m.image_url}" alt="">` : '🍽️';
+    return `
+      <div class="menu-item-card">
+        <div class="menu-img">${img}</div>
+        <div class="menu-info">
+          <div class="cat">${m.category || '-'}</div>
+          <div class="name">${escapeHtml(m.name)}</div>
+          <div class="price">Rp ${Number(m.price).toLocaleString('id-ID')}</div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn" onclick="openMitraEditMenu('${m.id}')">✏️</button>
         </div>
       </div>
     `;
@@ -2561,7 +2619,9 @@ function openMitraMenuForm(menuId) {
     <div class="field">
       <label>Foto Menu (opsional)</label>
       <div id="menuUploadArea" style="border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:#F8FAFC;" onclick="document.getElementById('menuImageInput').click()">
-        ${menu?.image_url ? `<div style="width:100%;height:140px;border-radius:10px;overflow:hidden;"><img src="${menu.image_url}" style="width:100%;height:100%;object-fit:cover;"></div>` : '<div style="font-size:36px;">📸</div><div style="font-size:13px;font-weight:700;margin-top:8px;">Tap untuk upload foto</div><div style="font-size:11px;color:var(--muted);margin-top:4px;">JPG/PNG max 2MB</div>'}
+        ${menu?.image_url 
+          ? `<div style="width:100%;height:140px;border-radius:10px;overflow:hidden;"><img src="${menu.image_url}" style="width:100%;height:100%;object-fit:cover;"></div>` 
+          : '<div style="font-size:36px;">📸</div><div style="font-size:13px;font-weight:700;margin-top:8px;">Tap untuk upload foto</div><div style="font-size:11px;color:var(--muted);margin-top:4px;">JPG/PNG max 2MB</div>'}
       </div>
       <input type="file" id="menuImageInput" accept="image/*" style="display:none;" onchange="handleMenuImageSelect(event)">
     </div>
@@ -2616,19 +2676,26 @@ async function saveMitraMenu() {
     if (!name) throw new Error('Nama menu wajib');
     if (price <= 0) throw new Error('Harga wajib');
 
-    let imageUrl = window.__menuEditId ? (APP.data.menus.find(m => m.id === window.__menuEditId)?.image_url || null) : null;
+    let imageUrl = window.__menuEditId 
+      ? (APP.data.menus.find(m => m.id === window.__menuEditId)?.image_url || null) 
+      : null;
 
     if (window.__selectedMenuFile) {
       btn.innerHTML = '<span class="spinner-sm"></span>Upload foto...';
       const ext = window.__selectedMenuFile.name.split('.').pop();
       const fileName = `menu_${partner.id}_${Date.now()}.${ext}`;
-      const { data: up, error: upErr } = await APP.supabase.storage.from('menu-images').upload(fileName, window.__selectedMenuFile);
+      const { data: up, error: upErr } = await APP.supabase.storage
+        .from('menu-images').upload(fileName, window.__selectedMenuFile);
       if (upErr) throw new Error('Upload gagal: ' + upErr.message);
       const { data: urlData } = APP.supabase.storage.from('menu-images').getPublicUrl(up.path);
       imageUrl = urlData.publicUrl;
     }
 
-    const data = { partner_id: partner.id, category, name, description, price, image_url: imageUrl, is_available: true, updated_at: new Date().toISOString() };
+    const data = { 
+      partner_id: partner.id, category, name, description, price, 
+      image_url: imageUrl, is_available: true, 
+      updated_at: new Date().toISOString() 
+    };
 
     if (window.__menuEditId) {
       const { error } = await APP.supabase.from('menus').update(data).eq('id', window.__menuEditId);
@@ -2641,21 +2708,31 @@ async function saveMitraMenu() {
     }
     closeGlobalModal();
     await loadMitraMenus();
-  } catch (err) { showToast('Gagal: ' + err.message, 'error'); btn.disabled = false; btn.innerText = '💾 Simpan'; }
+  } catch (err) {
+    showToast('Gagal: ' + err.message, 'error');
+    btn.disabled = false; btn.innerText = '💾 Simpan';
+  }
 }
 
 async function mitraDeleteMenu(id) {
-  const ok = await showConfirm({ icon:'🗑️', title:'Hapus Menu?', message:'Menu akan dihapus permanen.', confirmText:'Ya', confirmColor:'red' });
+  const ok = await showConfirm({
+    icon:'🗑️', title:'Hapus Menu?', 
+    message:'Menu akan dihapus permanen.', 
+    confirmText:'Ya', confirmColor:'red'
+  });
   if (!ok) return;
   await APP.supabase.from('menus').delete().eq('id', id);
   showToast('✅ Menu dihapus', 'success');
   await loadMitraMenus();
 }
 
+/* ---------- ORDERS ---------- */
 async function loadMitraOrders() {
   const partner = APP.data.partner;
   if (!partner) return;
-  const { data } = await APP.supabase.from('orders').select('*').eq('partner_id', partner.id).order('created_at', { ascending:false }).limit(100);
+  const { data } = await APP.supabase.from('orders').select('*')
+    .eq('partner_id', partner.id)
+    .order('created_at', { ascending:false }).limit(100);
   APP.data.orders = data || [];
   updateMitraOrderCounts();
   renderMitraOrders();
@@ -2665,28 +2742,36 @@ async function loadMitraOrders() {
 
 function updateMitraOrderCounts() {
   const list = APP.data.orders || [];
-  const counts = { ALL:list.length, NEW:0, PROCESSING:0, READY:0, DONE:0 };
+  const counts = { ALL:list.length, NEW:0, PROCESSING:0, READY:0, DONE:0, CANCELED:0 };
   list.forEach(o => {
     if (o.status === 'MENUNGGU') counts.NEW++;
     if (o.status === 'DIPROSES') counts.PROCESSING++;
     if (o.status === 'SIAP DIAMBIL') counts.READY++;
     if (o.status === 'SELESAI') counts.DONE++;
+    if (o.status === 'DIBATALKAN') counts.CANCELED++;
   });
-  document.getElementById('moc-all').innerText = counts.ALL;
-  document.getElementById('moc-new').innerText = counts.NEW;
-  document.getElementById('moc-proc').innerText = counts.PROCESSING;
-  document.getElementById('moc-ready').innerText = counts.READY;
-  document.getElementById('moc-done').innerText = counts.DONE;
+  const setTxt = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = val;
+  };
+  setTxt('moc-all', counts.ALL);
+  setTxt('moc-new', counts.NEW);
+  setTxt('moc-proc', counts.PROCESSING);
+  setTxt('moc-ready', counts.READY);
+  setTxt('moc-done', counts.DONE);
+  setTxt('moc-cancel', counts.CANCELED);
 }
 
 function setMitraOrderFilter(f) {
   APP.filters.order = f;
-  document.querySelectorAll('[data-of]').forEach(el => el.classList.toggle('active', el.dataset.of === f));
+  document.querySelectorAll('#app [data-of]').forEach(el => 
+    el.classList.toggle('active', el.dataset.of === f));
   renderMitraOrders();
 }
 
 function renderMitraOrders() {
   const c = document.getElementById('mitraOrderList');
+  if (!c) return;
   const list = APP.data.orders || [];
   let filtered = list;
   const f = APP.filters.order;
@@ -2694,12 +2779,19 @@ function renderMitraOrders() {
   else if (f === 'PROCESSING') filtered = list.filter(o => o.status === 'DIPROSES');
   else if (f === 'READY') filtered = list.filter(o => o.status === 'SIAP DIAMBIL');
   else if (f === 'DONE') filtered = list.filter(o => o.status === 'SELESAI');
-  if (!filtered.length) { c.innerHTML = '<div class="empty"><span class="icon">📭</span>Belum ada pesanan</div>'; return; }
+  else if (f === 'CANCELED') filtered = list.filter(o => o.status === 'DIBATALKAN');
+  if (!filtered.length) { 
+    c.innerHTML = '<div class="empty"><span class="icon">📭</span>Belum ada pesanan</div>'; 
+    return; 
+  }
   c.innerHTML = filtered.map(o => renderMitraOrderCard(o)).join('');
 }
 
 function renderMitraOrderCard(o, showActions = false) {
-  const statusMap = { 'MENUNGGU':'Baru', 'DIPROSES':'Diproses', 'SIAP DIAMBIL':'Siap Diambil', 'SELESAI':'Selesai', 'DIBATALKAN':'Dibatalkan' };
+  const statusMap = {
+    'MENUNGGU':'Baru', 'DIPROSES':'Diproses', 'SIAP DIAMBIL':'Siap Diambil',
+    'SELESAI':'Selesai', 'DIBATALKAN':'Ditolak'
+  };
   let actionHtml = '';
   if (o.status === 'MENUNGGU') {
     actionHtml = `
@@ -2711,9 +2803,16 @@ function renderMitraOrderCard(o, showActions = false) {
   } else if (o.status === 'DIPROSES') {
     actionHtml = `<button class="btn btn-orange btn-sm" style="margin-top:10px;" onclick="event.stopPropagation();mitraMarkReady('${o.id}')">📦 Tandai Siap Diambil</button>`;
   }
+  
+  const rejectInfo = (o.status === 'DIBATALKAN' && o.cancel_reason) ? `
+    <div style="background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;padding:8px 10px;border-radius:8px;font-size:11.5px;margin-top:8px;line-height:1.5;">
+      <strong>❌ Alasan tolak:</strong> ${escapeHtml(o.cancel_reason)}
+    </div>
+  ` : '';
+  
   return `
     <div class="card" style="border-left:4px solid ${getStatusColor(o.status)};">
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;gap:8px;">
         <strong>${o.order_code}</strong>
         <span class="badge" style="background:${getStatusColor(o.status)};">${statusMap[o.status] || o.status}</span>
       </div>
@@ -2724,55 +2823,156 @@ function renderMitraOrderCard(o, showActions = false) {
       <div style="display:flex;justify-content:space-between;margin-top:8px;align-items:center;">
         <span class="price">Rp ${Number(o.mitra_earnings || 0).toLocaleString('id-ID')}</span>
       </div>
+      ${rejectInfo}
       ${actionHtml}
     </div>
   `;
 }
 
 async function mitraAcceptOrder(orderId) {
-  const ok = await showConfirm({ icon:'✅', title:'Terima Order?', message:'Order akan mulai diproses.', confirmText:'Ya', confirmColor:'green' });
+  const ok = await showConfirm({
+    icon:'✅', title:'Terima Order?', 
+    message:'Order akan mulai diproses.', 
+    confirmText:'Ya', confirmColor:'green'
+  });
   if (!ok) return;
   try {
-    await APP.supabase.from('orders').update({ status:'DIPROSES', updated_at:new Date().toISOString() }).eq('id', orderId);
-    await APP.supabase.from('order_status_history').insert({ order_id:orderId, status:'DIPROSES', changed_by:APP.user.id, note:'Diterima mitra' });
+    await APP.supabase.from('orders')
+      .update({ status:'DIPROSES', updated_at:new Date().toISOString() })
+      .eq('id', orderId);
+    await APP.supabase.from('order_status_history').insert({
+      order_id:orderId, status:'DIPROSES', 
+      changed_by:APP.user.id, note:'Diterima mitra'
+    });
     showToast('✅ Order diterima', 'success');
     await loadMitraOrders();
     await loadMitraHome();
   } catch (err) { showToast('Gagal: ' + err.message, 'error'); }
 }
 
+/* 🔥 TOLAK PESANAN — dengan alasan */
 async function mitraRejectOrder(orderId) {
-  const ok = await showConfirm({ icon:'❌', title:'Tolak Order?', message:'Order akan dibatalkan.', confirmText:'Ya', confirmColor:'red' });
-  if (!ok) return;
-  try {
-    await APP.supabase.from('orders').update({ status:'DIBATALKAN', updated_at:new Date().toISOString() }).eq('id', orderId);
-    await APP.supabase.from('order_status_history').insert({ order_id:orderId, status:'DIBATALKAN', changed_by:APP.user.id, note:'Ditolak mitra' });
-    showToast('Order ditolak', 'success');
-    await loadMitraOrders();
-    await loadMitraHome();
-  } catch (err) { showToast('Gagal: ' + err.message, 'error'); }
+  return new Promise((resolve) => {
+    const modal = document.getElementById('globalModalContent');
+    modal.innerHTML = `
+      <h3>❌ Tolak Pesanan?</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.5;">
+        Pesanan akan dibatalkan dan customer akan mendapat notifikasi. Berikan alasan yang jelas.
+      </p>
+      <div class="field">
+        <label>Alasan Penolakan <span class="req">*</span></label>
+        <select id="rejectReason" onchange="document.getElementById('rejectOther').style.display = this.value === 'Lainnya' ? 'block' : 'none'">
+          <option value="">— Pilih alasan —</option>
+          <option value="Stok habis">🚫 Stok habis</option>
+          <option value="Menu tidak tersedia">📋 Menu tidak tersedia</option>
+          <option value="Toko sedang tutup">🔒 Toko sedang tutup</option>
+          <option value="Bahan baku habis">🧺 Bahan baku habis</option>
+          <option value="Antrian terlalu banyak">⏳ Antrian terlalu banyak</option>
+          <option value="Lainnya">✏️ Lainnya...</option>
+        </select>
+        <textarea id="rejectOther" placeholder="Tulis alasan lain..." 
+          style="display:none;margin-top:8px;"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="window.__rejectResolve(false)">Batal</button>
+        <button class="btn btn-red" onclick="window.__rejectResolve(true)">❌ Tolak Pesanan</button>
+      </div>
+    `;
+    document.getElementById('globalModal').classList.add('active');
+    
+    window.__rejectResolve = async (confirmed) => {
+      if (!confirmed) { closeGlobalModal(); resolve(); return; }
+      
+      let reason = document.getElementById('rejectReason').value;
+      if (reason === 'Lainnya') reason = document.getElementById('rejectOther').value.trim();
+      if (!reason) { showToast('Pilih alasan penolakan', 'error'); return; }
+      
+      const order = (APP.data.orders || []).find(o => o.id === orderId);
+      
+      try {
+        // Update order dengan alasan
+        const updateData = { 
+          status: 'DIBATALKAN',
+          updated_at: new Date().toISOString()
+        };
+        // Coba update dengan kolom tambahan (kalau migrasi sudah dijalankan)
+        try {
+          await APP.supabase.from('orders').update({ 
+            ...updateData, 
+            cancel_reason: reason, 
+            cancelled_by: 'mitra' 
+          }).eq('id', orderId);
+        } catch (colErr) {
+          // Fallback kalau kolom belum ada
+          await APP.supabase.from('orders').update(updateData).eq('id', orderId);
+        }
+        
+        // Catat history
+        await APP.supabase.from('order_status_history').insert({
+          order_id: orderId,
+          status: 'DIBATALKAN',
+          changed_by: APP.user.id,
+          note: `Ditolak mitra: ${reason}`
+        });
+        
+        // Kalau ada driver yang sudah di-assign, kembalikan ke ONLINE
+        if (order?.driver_id) {
+          await APP.supabase.from('drivers')
+            .update({ online_status: 'ONLINE' })
+            .eq('id', order.driver_id);
+        }
+        
+        showToast('✅ Pesanan ditolak: ' + reason, 'success');
+        closeGlobalModal();
+        await loadMitraOrders();
+        await loadMitraHome();
+        resolve();
+      } catch (err) {
+        showToast('Gagal: ' + err.message, 'error');
+      }
+    };
+  });
 }
 
 async function mitraMarkReady(orderId) {
-  const ok = await showConfirm({ icon:'📦', title:'Siap Diambil?', message:'Konfirmasi makanan siap.', confirmText:'Ya', confirmColor:'green' });
+  const ok = await showConfirm({
+    icon:'📦', title:'Siap Diambil?', 
+    message:'Konfirmasi makanan siap.', 
+    confirmText:'Ya', confirmColor:'green'
+  });
   if (!ok) return;
   try {
-    await APP.supabase.from('orders').update({ status:'SIAP DIAMBIL', updated_at:new Date().toISOString() }).eq('id', orderId);
-    await APP.supabase.from('order_status_history').insert({ order_id:orderId, status:'SIAP DIAMBIL', changed_by:APP.user.id, note:'Siap diambil driver' });
+    await APP.supabase.from('orders')
+      .update({ status:'SIAP DIAMBIL', updated_at:new Date().toISOString() })
+      .eq('id', orderId);
+    await APP.supabase.from('order_status_history').insert({
+      order_id:orderId, status:'SIAP DIAMBIL', 
+      changed_by:APP.user.id, note:'Siap diambil driver'
+    });
     showToast('✅ Siap diambil!', 'success');
     await loadMitraOrders();
     await loadMitraHome();
   } catch (err) { showToast('Gagal: ' + err.message, 'error'); }
 }
 
+/* ---------- STORE SETTINGS ---------- */
 function openMitraEditStore() {
   const p = APP.data.partner;
   if (!p) return;
   openGlobalModal(`
     <h3>🏪 Edit Info Toko</h3>
-    <div class="field"><label>Nama Toko <span class="req">*</span></label><input type="text" id="storeFormName" value="${escapeHtml(p.business_name || '')}"></div>
-    <div class="field"><label>Alamat <span class="req">*</span></label><textarea id="storeFormAddr">${escapeHtml(p.address || '')}</textarea></div>
-    <div class="field"><label>Telepon Toko</label><input type="tel" id="storeFormPhone" value="${escapeHtml(p.phone || '')}"></div>
+    <div class="field">
+      <label>Nama Toko <span class="req">*</span></label>
+      <input type="text" id="storeFormName" value="${escapeHtml(p.business_name || '')}">
+    </div>
+    <div class="field">
+      <label>Alamat <span class="req">*</span></label>
+      <textarea id="storeFormAddr">${escapeHtml(p.address || '')}</textarea>
+    </div>
+    <div class="field">
+      <label>Telepon Toko</label>
+      <input type="tel" id="storeFormPhone" value="${escapeHtml(p.phone || '')}">
+    </div>
     <button class="btn btn-green" onclick="saveMitraStoreInfo()">💾 Simpan</button>
     <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Batal</button>
   `);
@@ -2784,11 +2984,18 @@ async function saveMitraStoreInfo() {
   const address = document.getElementById('storeFormAddr').value.trim();
   const phone = document.getElementById('storeFormPhone').value.trim();
   if (!business_name || !address) { showToast('Nama & alamat wajib', 'error'); return; }
-  await APP.supabase.from('partners').update({ business_name, address, phone, updated_at:new Date().toISOString() }).eq('id', p.id);
+  await APP.supabase.from('partners').update({ 
+    business_name, address, phone, updated_at:new Date().toISOString() 
+  }).eq('id', p.id);
   p.business_name = business_name; p.address = address; p.phone = phone;
-  document.getElementById('mitraStoreName').innerText = business_name;
-  document.getElementById('mitraProfileName').innerText = business_name;
-  document.getElementById('mitraProfileAddr').innerText = '📍 ' + address;
+  
+  const nameEl = document.getElementById('mitraStoreName');
+  if (nameEl) nameEl.innerText = business_name;
+  const pNameEl = document.getElementById('mitraProfileName');
+  if (pNameEl) pNameEl.innerText = business_name;
+  const pAddrEl = document.getElementById('mitraProfileAddr');
+  if (pAddrEl) pAddrEl.innerText = '📍 ' + address;
+  
   showToast('✅ Tersimpan', 'success');
   closeGlobalModal();
 }
@@ -2798,8 +3005,14 @@ function openMitraEditHours() {
   if (!p) return;
   openGlobalModal(`
     <h3>🕒 Jam Operasional</h3>
-    <div class="field"><label>Jam Buka</label><input type="time" id="hoursOpen" value="${p.opening_time?.slice(0,5) || '08:00'}"></div>
-    <div class="field"><label>Jam Tutup</label><input type="time" id="hoursClose" value="${p.closing_time?.slice(0,5) || '22:00'}"></div>
+    <div class="field">
+      <label>Jam Buka</label>
+      <input type="time" id="hoursOpen" value="${p.opening_time?.slice(0,5) || '08:00'}">
+    </div>
+    <div class="field">
+      <label>Jam Tutup</label>
+      <input type="time" id="hoursClose" value="${p.closing_time?.slice(0,5) || '22:00'}">
+    </div>
     <button class="btn btn-green" onclick="saveMitraHours()">💾 Simpan</button>
     <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeGlobalModal()">Batal</button>
   `);
@@ -2809,9 +3022,12 @@ async function saveMitraHours() {
   const p = APP.data.partner;
   const opening_time = document.getElementById('hoursOpen').value;
   const closing_time = document.getElementById('hoursClose').value;
-  await APP.supabase.from('partners').update({ opening_time, closing_time, updated_at:new Date().toISOString() }).eq('id', p.id);
+  await APP.supabase.from('partners').update({ 
+    opening_time, closing_time, updated_at:new Date().toISOString() 
+  }).eq('id', p.id);
   p.opening_time = opening_time; p.closing_time = closing_time;
-  document.getElementById('mitraStoreHours').innerText = `${opening_time} - ${closing_time}`;
+  const hoursEl = document.getElementById('mitraStoreHours');
+  if (hoursEl) hoursEl.innerText = `${opening_time} - ${closing_time}`;
   showToast('✅ Jam diperbarui', 'success');
   closeGlobalModal();
 }
@@ -2823,10 +3039,12 @@ function mitraWhatsAppAdmin() {
 }
 
 async function switchMitraTab(tab) {
-  document.querySelectorAll('#app .nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+  document.querySelectorAll('#app .nav-item').forEach(n => 
+    n.classList.toggle('active', n.dataset.tab === tab));
   document.querySelectorAll('#app .page').forEach(p => p.classList.remove('active'));
   document.getElementById('mitra-page-' + tab)?.classList.add('active');
   window.scrollTo({ top:0, behavior:'smooth' });
+  
   if (tab === 'menu') await loadMitraMenus();
   if (tab === 'orders') await loadMitraOrders();
   if (tab === 'home') { await loadMitraHome(); await loadMitraWallet(); }
@@ -2836,16 +3054,26 @@ function subscribeMitraRealtime() {
   const p = APP.data.partner;
   if (!p) return;
   APP.realtimeChannel = APP.supabase.channel('mitra-' + p.id)
-    .on('postgres_changes', { event:'*', schema:'public', table:'orders', filter:`partner_id=eq.${p.id}` },
+    .on('postgres_changes', 
+      { event:'*', schema:'public', table:'orders', filter:`partner_id=eq.${p.id}` },
       (payload) => {
-        loadMitraHome(); loadMitraOrders(); loadMitraWallet();
-        if (payload.eventType === 'INSERT') { showToast('🔔 Order baru masuk!', 'success'); playBeep(); }
+        loadMitraHome(); 
+        loadMitraOrders(); 
+        loadMitraWallet();
+        if (payload.eventType === 'INSERT') { 
+          showToast('🔔 Order baru masuk!', 'success'); 
+          playBeep(); 
+        }
       }
     ).subscribe();
 }
 
 async function mitraLogout() {
-  const ok = await showConfirm({ icon:'🚪', title:'Keluar?', message:'Anda akan keluar.', confirmText:'Ya', confirmColor:'red' });
+  const ok = await showConfirm({ 
+    icon:'🚪', title:'Keluar?', 
+    message:'Anda akan keluar.', 
+    confirmText:'Ya', confirmColor:'red' 
+  });
   if (!ok) return;
   await APP.supabase.auth.signOut();
   window.location.reload();
