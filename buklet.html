@@ -288,6 +288,168 @@
     body { background: white; }
     .page { margin: 0; box-shadow: none; }
   }
+  /* ================================================================
+   RESPONSIVE SCREEN (tampilan browser)
+   ================================================================ */
+@media screen and (max-width: 768px) {
+  body {
+    background: #F4F7FB;
+    padding: 0;
+    font-size: 16px;  /* base lebih besar */
+  }
+  
+  .page {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    padding: 6mm 5mm !important;
+    margin: 0 0 4mm !important;
+    border-radius: 0 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+  }
+  
+  /* Header lebih compact */
+  .page-header {
+    margin: -6mm -5mm 5mm !important;
+    padding: 6mm 5mm 5mm !important;
+    border-radius: 0 !important;
+  }
+  .page-header .header-ico {
+    width: 11mm; height: 11mm;
+    font-size: 5.5mm;
+    border-radius: 3mm;
+  }
+  .page-header h1 { font-size: 5.5mm; }
+  .page-header p { font-size: 3.5mm; }
+  
+  /* Typography scale up */
+  h2 {
+    font-size: 5mm;
+    margin: 5mm 0 3mm;
+  }
+  h2 .ico {
+    width: 8mm; height: 8mm;
+    font-size: 4mm;
+    border-radius: 2.5mm;
+  }
+  h3 { font-size: 4.5mm; }
+  p { font-size: 4mm; line-height: 1.7; }
+  ul, ol { padding-left: 6mm; }
+  li { font-size: 4mm; line-height: 1.75; }
+  
+  /* Cover lebih compact */
+  .cover {
+    min-height: auto !important;
+    padding: 20mm 6mm 15mm !important;
+  }
+  .cover-logo-wrap {
+    width: 55mm; height: 55mm;
+    margin-bottom: 10mm;
+  }
+  .cover-logo-wrap img { border-radius: 14mm; }
+  .cover-logo-wrap .fallback { font-size: 32mm; }
+  .cover h1 { font-size: 11mm; }
+  .cover h2 { font-size: 4.5mm; margin-top: 3mm; }
+  .cover .booklet-badge {
+    padding: 3mm 7mm;
+    font-size: 3.8mm;
+    margin-top: 10mm;
+  }
+  .cover .version {
+    position: static !important;
+    margin-top: 10mm;
+    font-size: 3.5mm;
+  }
+  
+  /* Back cover */
+  .back-cover {
+    min-height: auto !important;
+    padding: 25mm 8mm 20mm !important;
+  }
+  .back-logo {
+    width: 35mm; height: 35mm;
+    margin-bottom: 8mm;
+  }
+  .back-logo img { border-radius: 10mm; }
+  .back-cover h2 { font-size: 6.5mm; }
+  .back-cover p { font-size: 4mm; }
+  .back-cover .contact {
+    padding: 3.5mm 7mm;
+    font-size: 4.2mm;
+    margin: 5mm 0;
+  }
+  
+  /* Steps */
+  .step {
+    padding: 4mm;
+    gap: 3mm;
+    margin-bottom: 3mm;
+  }
+  .step-num {
+    width: 9mm; height: 9mm;
+    font-size: 4.5mm;
+  }
+  .step-content strong { font-size: 4.2mm; }
+  .step-content p { font-size: 3.8mm; }
+  
+  /* Tables */
+  table { font-size: 3.8mm; }
+  th { padding: 3mm 3.5mm; font-size: 3.6mm; }
+  td { padding: 3mm 3.5mm; }
+  
+  /* Info boxes */
+  .info-box {
+    padding: 4mm;
+    font-size: 3.8mm;
+    line-height: 1.65;
+  }
+  
+  /* Pre/code */
+  pre {
+    padding: 4mm;
+    font-size: 3.5mm;
+    line-height: 1.6;
+    overflow-x: auto;
+  }
+  code { font-size: 3.5mm; }
+  
+  /* TOC */
+  .toc-item {
+    padding: 4mm;
+    font-size: 4mm;
+  }
+  .toc-item strong {
+    font-size: 3.8mm;
+    padding: 1.2mm 3.5mm;
+  }
+}
+
+/* Tablet */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .page {
+    width: 100%;
+    max-width: 700px;
+    padding: 12mm;
+  }
+  body {
+    padding: 10mm 0;
+  }
+  .cover { padding: 30mm 15mm; }
+  .cover-logo-wrap { width: 90mm; height: 90mm; }
+  .cover h1 { font-size: 16mm; }
+}
+
+/* Desktop — tetap proporsional */
+@media screen and (min-width: 1025px) {
+  body {
+    padding: 15mm 0;
+    background: linear-gradient(135deg, #F4F7FB, #E2E8F0);
+  }
+  .page {
+    box-shadow: 0 8mm 20mm rgba(0,0,0,0.1);
+    border-radius: 4mm;
+  }
+}
 </style>
 </head>
 <body>
