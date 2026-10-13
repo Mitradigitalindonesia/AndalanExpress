@@ -1126,21 +1126,42 @@ async function saveCustGuestData() {
   const normalizedPhone = normalizePhone(phone);
 
   try {
-    let profileId = null;
+    // 1) Coba insert ke profiles
     const { data: newProfile, error } = await APP.supabase
       .from('profiles')
-      .insert({ name, phone: normalizedPhone, email:`guest_${Date.now()}@andalan.local`, role:'customer', status:'active' })
-      .select().single();
-    profileId = error ? ('guest_' + crypto.randomUUID()) : newProfile.id;
+      .insert({ 
+        name, 
+        phone: normalizedPhone, 
+        email: `guest_${Date.now()}@andalan.local`, 
+        role: 'customer', 
+        status: 'active' 
+      })
+      .select()
+      .single();
+
+    let profileId;
+    if (error) {
+      console.warn('⚠️ Insert profile gagal:', error.message);
+      // Fallback: UUID murni (tapi order nanti bisa gagal kalau ada FK)
+      profileId = crypto.randomUUID();
+    } else {
+      profileId = newProfile.id;  // ← INI YANG BENAR
+    }
 
     saveGuestData({ id: profileId, name, phone: normalizedPhone });
     closeGlobalModal();
     showToast('✅ Data tersimpan', 'success');
     await renderByRole('customer');
+
   } catch (err) {
-    saveGuestData({ id:'guest_' + crypto.randomUUID(), name, phone: normalizedPhone });
+    console.error('saveCustGuestData error:', err);
+    saveGuestData({ 
+      id: crypto.randomUUID(), 
+      name, 
+      phone: normalizePhone(phone) 
+    });
     closeGlobalModal();
-    showToast('✅ Tersimpan (offline mode)', 'success');
+    showToast('✅ Tersimpan (mode lokal)', 'success');
     await renderByRole('customer');
   }
 }
