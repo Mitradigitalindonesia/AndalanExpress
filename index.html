@@ -334,10 +334,11 @@ const FALLBACK_MAPS_KEY = 'AIzaSyBJVmtW6nS77s2W2s5owmeTTh0DA7G_3dA';
 const ADMIN_PHONE_FALLBACK = '6282140000115';
 
 const DEFAULT_PRICING = {
-  kurir:   { price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:0 },
-  jastip:  { price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:0 },
-  kuliner: { price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:10 },
-  ojek:    { price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:0 }
+  // Tarif jasa minimum Rp5.000 untuk semua layanan; ongkir kuliner memakai aturan yang sama.
+  kurir:   { base_fare:5000, price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:0 },
+  jastip:  { base_fare:5000, price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:0 },
+  kuliner: { base_fare:5000, price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:10 },
+  ojek:    { base_fare:5000, price_per_km:2500, service_fee:1000, driver_fee_pct:10, umkm_markup_pct:0 }
 };
 
 const APP = {
@@ -580,21 +581,33 @@ async function loadConfigFromDB() {
 }
 
 async function loadPricingRules() {
+  // Tarif dasar, tarif/km, dan biaya layanan ditetapkan di DEFAULT_PRICING.
+  // Data database tidak boleh menimpa tiga nilai inti ini. Database tetap boleh
+  // mengatur persentase komisi driver dan markup UMKM.
+  const rules = Object.fromEntries(
+    Object.entries(DEFAULT_PRICING).map(([type, rule]) => [type, { ...rule }])
+  );
   try {
-    const { data } = await APP.supabase.from('pricing_rules').select('*').eq('is_active', true);
+    const { data, error } = await APP.supabase
+      .from('pricing_rules').select('*').eq('is_active', true);
+    if (error) throw error;
     if (data && data.length) {
-      const rules = {};
       data.forEach(r => {
-        rules[r.service_type] = {
-          price_per_km: Number(r.price_per_km) || 2500,
-          service_fee: Number(r.service_fee) || 1000,
-          driver_fee_pct: Number(r.driver_fee_percentage) || 10,
-          umkm_markup_pct: Number(r.umkm_markup_percentage) || 0
-        };
+        if (!rules[r.service_type]) return;
+        const driverPct = Number(r.driver_fee_percentage);
+        const markupPct = Number(r.umkm_markup_percentage);
+        if (Number.isFinite(driverPct) && driverPct >= 0 && driverPct <= 100) {
+          rules[r.service_type].driver_fee_pct = driverPct;
+        }
+        if (Number.isFinite(markupPct) && markupPct >= 0 && markupPct <= 100) {
+          rules[r.service_type].umkm_markup_pct = markupPct;
+        }
       });
-      APP.pricing = rules;
     }
-  } catch(e) { console.warn('Pricing fallback ke default'); }
+  } catch(e) {
+    console.warn('Pricing rules gagal dimuat; memakai tarif default.', e);
+  }
+  APP.pricing = rules;
 }
 
 async function renderByRole(role) {
@@ -737,7 +750,8 @@ function getRule(t) { return APP.pricing[t] || DEFAULT_PRICING[t] || DEFAULT_PRI
 function calculateCost({ serviceType, distanceKm, subtotal = 0 }) {
   const rule = getRule(serviceType);
   const distance = Math.max(0, Number(distanceKm) || 0);
-  const serviceCost = Math.round(distance * rule.price_per_km);
+  // Tarif jasa = nilai terbesar antara tarif minimum dan jarak × tarif per km.
+  const serviceCost = Math.max(rule.base_fare || 5000, Math.round(distance * rule.price_per_km));
   const serviceFee = rule.service_fee;
   const umkmMarkup = Math.round(subtotal * (rule.umkm_markup_pct / 100));
   const subtotalWithMarkup = subtotal + umkmMarkup;
